@@ -1,0 +1,3 @@
+display_name: Markdown Source Images
+short_description: Organize Markdown images under source folders.
+default_prompt: Organize this repository's Markdown images into source/<md-path>/ folders and validate that image links are clean.
