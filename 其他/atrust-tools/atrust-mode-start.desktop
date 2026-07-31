@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=aTrust 启动
+Comment=启动 aTrust 后台和登录界面
+Exec=/home/cambricon/.local/bin/atrust-mode-start
+Icon=cn.com.sangfor.atrust
+Terminal=false
+StartupNotify=true
+Categories=Network;

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -u
+
+readonly PROFILE_DIR="$HOME/.local/share/atrust-secure-chrome/profile"
+
+notify() {
+  command -v notify-send >/dev/null 2>&1 && notify-send "aTrust 快速退出" "$1"
+}
+
+pkill -TERM -f "^/opt/google/chrome/chrome --user-data-dir=$PROFILE_DIR( |$)" 2>/dev/null || true
+
+if ! pkexec /usr/local/sbin/atrust-fast-exit-root; then
+  notify "管理员授权被取消，aTrust 后台未清理。"
+  exit 1
+fi
+
+# Chrome will recreate NetworkService on demand. Killing only this utility
+# process clears stale DNS and sockets without closing the normal browser.
+pkill -TERM -u "$(id -u)" -f '^/opt/google/chrome/chrome --type=utility --utility-sub-type=network\.mojom\.NetworkService ' 2>/dev/null || true
+
+notify "aTrust 后台、隧道和缓存已清理，普通网络已恢复；Codex 专用代理保持运行。"

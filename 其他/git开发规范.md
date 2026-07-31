@@ -1,9 +1,3 @@
-
-
-
-G
-
-
 # Git 开发流程规范
 
 > 适用于采用**线性历史策略**的 GitLab 项目。
@@ -177,3 +171,87 @@ Issue
 ```
 
 主分支保持**线性历史**，开发只发生在功能分支，合并前必须基于最新主分支完成验证。
+
+# Tag 版本查看流程
+
+Git Tag 用于为某个确定的 Commit 添加固定标记，项目通常使用 `v1.2.0`、`release-1.2.0` 等 Tag 标识发布版本。但 Tag 本身不一定等于正式 Release，仍需结合项目命名规范以及 GitLab 的 Releases 页面确认。
+
+### 1. 确认当前工作区状态
+
+切换版本前先检查是否存在尚未提交的修改：
+
+```bash
+git status
+```
+
+如果工作区不干净，应先提交、暂存或使用 Worktree，避免切换版本时产生冲突或覆盖当前工作。
+
+### 2. 同步远程 Tag
+
+```bash
+git fetch origin --tags
+```
+
+查看本地已有的全部 Tag：
+
+```bash
+git --no-pager tag --list
+```
+
+如果同步后仍怀疑本地 Tag 不完整，可以直接查看远程仓库中的 Tag：
+
+```bash
+git ls-remote --tags origin
+```
+
+### 3. 查看 Tag 信息和代码差异
+
+查看 Tag 指向的 Commit、提交信息和代码变更：
+
+```bash
+git show <tag-name>
+```
+
+比较某个 Tag 与当前分支的差异：
+
+```bash
+git diff <tag-name>..HEAD
+```
+
+### 4. 临时切换到 Tag 版本
+
+如果只需要查看、编译或运行 Tag 对应的代码：
+
+```bash
+git switch --detach <tag-name>
+```
+
+例如：
+
+```bash
+git switch --detach v1.2.0
+```
+
+此时仓库处于 `detached HEAD` 状态，代码内容对应 `v1.2.0`，但当前并不位于任何分支。查看完成后返回之前的分支：
+
+```bash
+git switch -
+```
+
+不要直接在 `detached HEAD` 状态下长期开发，否则新提交可能因没有分支引用而难以管理。
+
+### 5. 基于 Tag 创建排查或修复分支
+
+如果需要修改 Tag 版本的代码，应基于 Tag 创建新分支：
+
+```bash
+git switch -c <新分支名> <tag-name>
+```
+
+例如：
+
+```bash
+git switch -c zhangyihao/investigate-v1.2.0 v1.2.0
+```
+
+后续修改和提交都会记录在新分支上，不会改变原 Tag。

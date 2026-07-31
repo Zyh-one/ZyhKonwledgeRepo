@@ -1,0 +1,127 @@
+#!/usr/bin/env python3
+import ipaddress
+import json
+import socket
+import socketserver
+import ssl
+import threading
+import urllib.parse
+
+LISTEN = ("127.0.0.1", 18787)
+DOH_HOST = "cloudflare-dns.com"
+DOH_IPS = ("104.16.248.249", "104.16.249.249")
+
+
+def resolve(host):
+    try:
+        return [str(ipaddress.ip_address(host))]
+    except ValueError:
+        pass
+    query = urllib.parse.urlencode({"name": host, "type": "A"})
+    request = (
+        f"GET /dns-query?{query} HTTP/1.1\r\n"
+        f"Host: {DOH_HOST}\r\n"
+        "Accept: application/dns-json\r\n"
+        "Connection: close\r\n\r\n"
+    ).encode("ascii")
+    last_error = None
+    for doh_ip in DOH_IPS:
+        try:
+            with socket.create_connection((doh_ip, 443), timeout=8) as raw:
+                context = ssl.create_default_context()
+                with context.wrap_socket(raw, server_hostname=DOH_HOST) as tls:
+                    tls.settimeout(8)
+                    tls.sendall(request)
+                    response = bytearray()
+                    while True:
+                        chunk = tls.recv(65536)
+                        if not chunk:
+                            break
+                        response.extend(chunk)
+            header, separator, payload = bytes(response).partition(b"\r\n\r\n")
+            if not separator or b" 200 " not in header.split(b"\r\n", 1)[0]:
+                raise OSError("DoH HTTP response was not 200")
+            data = json.loads(payload.decode("utf-8"))
+            addresses = []
+            for answer in data.get("Answer", []):
+                if answer.get("type") == 1:
+                    try:
+                        addresses.append(str(ipaddress.IPv4Address(answer.get("data", ""))))
+                    except ValueError:
+                        pass
+            if addresses:
+                return addresses
+        except Exception as error:
+            last_error = error
+    raise OSError(f"public DoH lookup failed for {host}: {last_error}")
+
+
+def connect_target(host, port):
+    last_error = None
+    for address in resolve(host):
+        try:
+            return socket.create_connection((address, port), timeout=8)
+        except OSError as error:
+            last_error = error
+    raise last_error or OSError("connection failed")
+
+
+class Handler(socketserver.BaseRequestHandler):
+    def handle(self):
+        self.request.settimeout(10)
+        request = b""
+        while b"\r\n\r\n" not in request and len(request) < 65536:
+            chunk = self.request.recv(4096)
+            if not chunk:
+                return
+            request += chunk
+        headers, _, remainder = request.partition(b"\r\n\r\n")
+        parts = headers.split(b"\r\n", 1)[0].decode("ascii", "replace").split()
+        if len(parts) != 3 or parts[0].upper() != "CONNECT":
+            self.request.sendall(b"HTTP/1.1 405 Method Not Allowed\r\nConnection: close\r\n\r\n")
+            return
+        host, separator, port = parts[1].rpartition(":")
+        if not separator or not host:
+            return
+        try:
+            upstream = connect_target(host.strip("[]"), int(port))
+        except (OSError, ValueError):
+            self.request.sendall(b"HTTP/1.1 502 Bad Gateway\r\nConnection: close\r\n\r\n")
+            return
+        with upstream:
+            self.request.sendall(b"HTTP/1.1 200 Connection Established\r\n\r\n")
+            self.request.settimeout(None)
+            upstream.settimeout(None)
+            if remainder:
+                upstream.sendall(remainder)
+
+            def relay(source, target):
+                try:
+                    while True:
+                        data = source.recv(65536)
+                        if not data:
+                            break
+                        target.sendall(data)
+                except OSError:
+                    pass
+                finally:
+                    try:
+                        target.shutdown(socket.SHUT_WR)
+                    except OSError:
+                        pass
+
+            upload = threading.Thread(
+                target=relay, args=(self.request, upstream), daemon=True
+            )
+            upload.start()
+            relay(upstream, self.request)
+            upload.join(timeout=1)
+
+
+class Server(socketserver.ThreadingTCPServer):
+    allow_reuse_address = True
+    daemon_threads = True
+
+
+with Server(LISTEN, Handler) as server:
+    server.serve_forever()

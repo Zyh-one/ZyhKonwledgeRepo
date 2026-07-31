@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly PROXY_URL="http://127.0.0.1:18787"
+readonly BYPASS="localhost,127.0.0.1,::1,cambricon.com,.cambricon.com,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+
+"$HOME/bin/atrust-proxy-start"
+export HTTP_PROXY="$PROXY_URL" HTTPS_PROXY="$PROXY_URL" ALL_PROXY="$PROXY_URL"
+export http_proxy="$PROXY_URL" https_proxy="$PROXY_URL" all_proxy="$PROXY_URL"
+export NO_PROXY="$BYPASS" no_proxy="$BYPASS"
+
+exec /usr/bin/code "$@"

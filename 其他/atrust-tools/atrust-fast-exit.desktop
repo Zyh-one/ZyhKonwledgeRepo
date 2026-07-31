@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=aTrust 快速退出
+Comment=彻底停止 aTrust 并快速恢复普通网络
+Exec=/home/cambricon/.local/bin/atrust-fast-exit
+Icon=network-offline
+Terminal=false
+StartupNotify=true
+Categories=Network;
