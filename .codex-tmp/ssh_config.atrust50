@@ -1,0 +1,28 @@
+Host atrust-bastion
+    HostName 10.10.150.19
+    Port 2222
+    User fs_zhangyihao
+    IdentityFile /home/cambricon/.ssh/keti/id_ed25519
+    IdentitiesOnly yes
+    ProxyCommand /usr/bin/nc -X 5 -x 127.0.0.1:1080 %h %p
+    ConnectTimeout 15
+    ServerAliveInterval 10
+    ServerAliveCountMax 3
+    TCPKeepAlive yes
+    Compression no
+    BatchMode yes
+    StrictHostKeyChecking accept-new
+
+Host atrust-50
+    HostName 127.0.0.1
+    Port 6009
+    User zhangyuhao
+    IdentityFile /home/cambricon/.ssh/atrust_50_ed25519
+    IdentitiesOnly yes
+    ConnectTimeout 15
+    ServerAliveInterval 10
+    ServerAliveCountMax 3
+    TCPKeepAlive yes
+    Compression no
+    BatchMode yes
+    StrictHostKeyChecking accept-new

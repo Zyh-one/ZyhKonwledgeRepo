@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-pkexec /usr/local/sbin/atrust-mode-start-root
-
-if ! pgrep -x aTrustTray >/dev/null 2>&1; then
-  gtk-launch cn.com.sangfor.atrust
-fi
