@@ -6,7 +6,7 @@
 
 1. nanoVllm的大致架构：
 
-![image\.png](../source/nanoVllm/nanoVllm/image.png)
+![image\.png](../../../source/推理系统/框架实现/vLLM/nanoVllm/image.png)
 
 #### SamplingParams\(采样参数\)
 
@@ -400,7 +400,7 @@ Sequence列表 → prepare_prefill/prepare_decode → run_model → sampler → 
 
 #### Models
 
-![image\.png](../source/nanoVllm/nanoVllm/image%201.png)
+![image\.png](../../../source/推理系统/框架实现/vLLM/nanoVllm/image%201.png)
 
 1. nano\-vLLM 自己实现一套 Qwen3 模型结构，然后用 HuggingFace 目录中的 `config.json` 读取模型结构参数，再按这些参数构建 PyTorch 模型骨架。
 
@@ -512,7 +512,7 @@ Sequence列表 → prepare_prefill/prepare_decode → run_model → sampler → 
 
 ### 多头注意力\-张量并行
 
-![image\.png](../source/nanoVllm/nanoVllm/image%202.png)
+![image\.png](../../../source/推理系统/框架实现/vLLM/nanoVllm/image%202.png)
 
 1. 多头注意力的“分头”和张量并行的“切分权重”看起来都在拆 Q/K/V，但它们的目的和层次不同。
 

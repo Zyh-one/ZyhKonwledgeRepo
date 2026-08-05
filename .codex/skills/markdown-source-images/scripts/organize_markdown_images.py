@@ -14,7 +14,15 @@ from pathlib import Path
 
 
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"}
-LEGACY_ATTACHMENT_DIRS = {"图片和附件", "images", "assets", "attachments", "attach", "附件"}
+LEGACY_ATTACHMENT_DIRS = {
+    "image",
+    "images",
+    "图片和附件",
+    "assets",
+    "attachments",
+    "attach",
+    "附件",
+}
 MD_IMAGE_RE = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
 HTML_IMAGE_RE = re.compile(r"<img\b[^>]*?\bsrc=[\"']([^\"']+)[\"']", re.I)
 WIKI_IMAGE_RE = re.compile(
@@ -147,17 +155,27 @@ def apply_rewrites(root: Path, rewrites: dict[Path, list[Rewrite]], dry_run: boo
 
 def remove_empty_legacy_dirs(root: Path, dry_run: bool) -> int:
     removed = 0
-    for path in sorted(root.rglob("*"), key=lambda p: len(p.parts), reverse=True):
-        if not path.is_dir() or path.name not in LEGACY_ATTACHMENT_DIRS:
+    candidates = sorted(
+        (
+            path
+            for path in root.rglob("*")
+            if path.is_dir() and path.name in LEGACY_ATTACHMENT_DIRS
+        ),
+        key=lambda path: len(path.parts),
+    )
+    roots: list[Path] = []
+    for path in candidates:
+        if any(parent in roots for parent in path.parents):
             continue
-        try:
-            next(path.iterdir())
+        roots.append(path)
+
+    for path in roots:
+        if any(child.is_file() for child in path.rglob("*")):
             continue
-        except StopIteration:
-            print(f"remove empty attachment dir: {path.relative_to(root)}")
-            removed += 1
-            if not dry_run:
-                path.rmdir()
+        print(f"remove empty attachment tree: {path.relative_to(root)}")
+        removed += 1
+        if not dry_run:
+            shutil.rmtree(path)
     return removed
 
 

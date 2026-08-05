@@ -91,16 +91,16 @@ Decode 实例通过 MLUMooncakeConnector 获取 KVCache
 
 * 单请求正常处理，正常返回结果
 * speed_up为1（与线上glm5请求负载一致）：绝大部分请求504，少量请求成功执行
-  ![1785395900603](../source/Draft/PD分离排查梳理/1785395900603.png)
+  ![1785395900603](../../source/Draft/PD分离/PD分离排查梳理/1785395900603.png)
   * 504：请求**超时**
 * speed_up为0.1（增大请求发射间隔）：所有请求成功执行
-  ![1785395917419](../source/Draft/PD分离排查梳理/1785395917419.png)
+  ![1785395917419](../../source/Draft/PD分离/PD分离排查梳理/1785395917419.png)
 
 查看Prefill/Decode节点日志，发现
 
 * Decode节点接收的请求极少，没有请求压力
 * Prefill节点持续不断abort请求
-  ![1785396082280](../source/Draft/PD分离排查梳理/1785396082280.png)
+  ![1785396082280](../../source/Draft/PD分离/PD分离排查梳理/1785396082280.png)
 
 分析：**Prefill节点不断abort新的请AiBrix、求** ----->  请求连续504
 
