@@ -22,3 +22,35 @@ PD 分离并不是无成本的。模型权重通常需要在两类实例上各�
 ## 参考资料
 
 - [DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving](https://www.usenix.org/conference/osdi24/presentation/zhong-yinmin)，OSDI 2024。
+
+补充：
+
+* 在PD分离服务中，TTFT指标的产生和Decode节点没有关系，整个 Prefill计算和产生首token的过程都是在Prefill节点发生的，对吗？
+
+不完全对，在实际P/D分离场景中，“首token”返回有两种路径
+
+**路径一：**Prefill 生成首 token，并直接流式返回
+
+Prefill节点完全prompt prefill计算，采样生成首token，直接返回客户端
+
+此时，KVCache传输对TTFT影响较小
+
+**路径二**：Prefill 只完成前置计算，统一由 Decode 链路返回 token
+
+```
+客户端请求
+  ↓
+Prefill 节点执行 Prefill
+  ↓
+生成 KV Cache，可能同时算出首 token
+  ↓
+KV Cache 和相关状态传给 Decode
+  ↓
+Decode 接管请求
+  ↓
+通过 Decode 链路向客户端返回首 token
+  ↓
+继续生成后续 token
+```
+
+此时，KVCache传输对TTFT影响较大

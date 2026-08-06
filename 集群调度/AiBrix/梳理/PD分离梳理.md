@@ -136,70 +136,7 @@ P/D分离涉及KVCache传输，故需要Envoy和Gateway plugin执行多次操作
 
 问：什么是KVCache Runtime？在考虑KVCache Runtime的情况下，似乎又不一样
 
-## 1.2 KVCache传输
-
-这部分偏向理论，考虑转移至“推理系统/其他细节/PD分离.md”中
-
-### 1.2.1 点对点
-
-Pod间直接传输；Prefill Pod  ---- RDMA/高速网络 ----> Decode Pod
-
-* KVCache主要保存在Prefill Pod中
-* Decode Pod根据相关信息**拉取** KV 数据（通常）
-* 追求单次 P/D 请求的低延迟（优点）
-
-典型实现包括：
-
-* NIXL Connector；
-* Mooncake P/D Connector；
-
-**补充：**
-
-点对点的传输，完全可能会加剧Prefill Pod的压力，再加上AiBrix中的一些超时配置（`AIBRIX_PREFILL_REQUEST_TIMEOUT`），极大可能是造成此前实验，请求504的原因
-
-如果是，我感觉解决方案就是：
-
-* 尽一切办法提升Prefill实例比重，因为目前Decode实例算力利用率比较低，无法看到P/D分离在P2P传输中的能力上限
-* 探讨Pod间接传输，根据生产环境，考虑混合模式
-
-关于AiBrix：是否可以优化？当检测到Prefill Pod显存压力过大时，降低该Prefill Pod请求接收速度，回压
-
-### 1.2.2 Pod间接传输
-
-```mermaid
-flowchart LR
-    P[Prefill Pod] -->|Put KV blocks| C[(共享 KV Cache<br/>L2 Cache)]
-    C -->|Get KV blocks| D[Decode Pod]
-
-    M[(Metadata Service)] -.记录节点、Key、位置.-> C
-```
-
-中间层可能会负责：
-
-* 跨实例共享；
-* Prefix Cache 复用；
-* 多级存储；
-
-它可以解决“因decode无法及时获取KV Cache而导致请求超时”的问题
-
-AiBri中也有这部分的内容，后续可以探讨
-
-Mooncake Distributed Store；nfiniStore（AiBrix支持）
-
-### 1.2.3 混合模式
-
-```mermaid
-flowchart TD
-    P[Prefill GPU KV Cache]
-
-    P -->|快速 P/D 交接| D[Decode GPU KV Cache]
-    P -->|Offload/复用| L1[本机 CPU L1]
-    L1 -->|异步写入| L2[(分布式 L2 Cache)]
-
-    L2 -->|后续请求复用| D2[其他推理实例]
-```
-
-感觉更贴近生产环境
+关于KVCache传输等细节，具体可参考**“推理系统/其他细节/PD分离/KVCache传输.md”**
 
 # 2.源码解读
 
@@ -224,6 +161,8 @@ flowchart TD
 | 缓存与指标           | `pkg/cache/`、`pkg/kvevent/`                    | 路由算法所需 Pod、指标和 Prefix Cache 信息来自哪里？  |
 
 ## 2.1 cmd/plugins/main.go
+
+对应镜像：aibrix/gateway-plugins；Dockerfile构建<tag></tag>
 
 standalone模式：脱离k8s，本地进程运行AIBrix GateWay
 
@@ -314,20 +253,132 @@ CRD spec.names.plural   → GVR.Resource
 
 该函数返回Lister和client，一个读，一个写，因为AiBrix GateWay需要修改请求路由信息
 
-
 **4.Corev1Lister函数**
 
 提供查询集群Pod和Service的Lister
 
 5.cache.InitWithOptions()：初始化AIBrix
 
-
-
-
-
-
-
 **疑点：**
 
 * 为什么k8sClient重复创建了两次？
 * AiBrix项目中，没有LLMServing crd相关定义
+
+
+**5.初始化缓存`cache.InitWithOptions()`**
+
+**本质上：**将相关信息同步到当前进程所在内存，实现快速查询，和informer作用类似
+
+缓存：plugin进程在Node A所分配的内存空间Cache.Store
+
+Cache.Store是 AiBrix Gateway 路由所依赖的本地状态中心，包括`metaPods`，`metaModels`，`metaPodRouters`等等
+
+Cache.Store大致包含服务发现信息，实时负载信息，路由辅助信息，性能预测信息等，目的：优先读取本地store，不需每次都查询K8s，Prometheus 和 Redis
+
+InitOptions内容包含两类：数据源（DiscoveryProvider，RedisClient，ModelRouterProvider），功能开关
+
+* Cache.store会通过这些数据源拉取相关数据，并保存
+
+
+
+**6.小结**
+
+前面的Lister和Cache.store作用类似，简单进行一个小结
+
+* Informer 内部维护 Kubernetes **原始**对象缓存，查询方法也是固定的
+* Cache.store维护的是AiBrix 加工后的业务状态
+
+存在一条数据链路：**加工处理是核心**
+
+```
+Kubernetes API Server
+          │
+          ▼
+     Pod Informer
+          │ 原始 *v1.Pod
+          ▼
+     Store.addPod()
+          │ 加工、过滤、聚合
+          ▼
+      cache.Store
+```
+
+* 真正执行数据过滤，转换，加工的是Cache.Store自己的方法，例如pkg/cache/cache_init.go中的addPod()，updateModelAdapter()等方法
+  * InitOptions()主要提供原生数据源
+* **Cache.store存在的核心原因**：调度需要派生和外部信息
+  * Informer拉取的数据（k8s原生资源）只能表达 k8s 中已有的状态，无法完整表达 AiBrix 路由决策所需要的数据，故需要Cache.Store进行加工
+
+
+
+grpc服务和web服务：
+
+本质上都是：监听网络端口，接收外部请求，执行对应业务逻辑，再返回响应。
+
+
+
+后续的流程是一个标准的grpc服务启动流程，启动以下3个服务
+
+* gateway.server：核心业务逻辑
+  * 面对Envoy发来的请求，根据本地缓存（Cache.store）和外部依赖`InitOptions`{}，处理请求并返回给Envoy
+* Metrics Server：供`Prometheus`抓取，使用独立的网络端口
+* localhost:6060（？？？）
+
+正常的grpc，通常利用.proto文件生成客户端和服务端代码
+
+* AiBrix直接使用Envoy项目定义好的相关API，原始.proto文件和.pb.go由Envoy项目维护
+  ```
+  Envoy 项目中的 ext_proc.proto
+               │ protoc 生成
+               ▼
+  go-control-plane 中的 Go 代码
+               │ Go Module 引入
+               ▼
+  AiBrix import extProcPb
+               │
+               ▼
+  实现 ExternalProcessorServer 接口
+  ```
+
+在AiBrix场景中，Envoy接收用户请求后，会通过grpc将其转发给Gateway Plugin，故采用Envoy维护的grpc方法
+
+
+
+## 2.2 pkg/plugin
+
+将前面main.go初始化好的 Redis、Kubernetes 客户端、Lister、Cache 和路由算法组装成一个能够处理 Envoy ext_proc 请求的 `gateway.Server`
+
+**1.Gateway.go**
+
+核心流程：从Envoy接收请求，**进行相关内部操作**，返回给Envoy
+
+核心方法：
+
+```
+HandleRequestHeaders()  --->  	gateway_req_headers.go
+HandleRequestBody()		--->	gateway_req_body.go
+HandleResponseHeaders() --->	gateway_rsp_headers.go
+HandleResponseBody()	--->	gateway_rsp_body.go
+```
+
+一个推理请求的req和resp都需要经过Envoy 和 GateWay plugin，以下是大致流程
+
+```
+客户端
+   │ HTTP Request
+   ▼
+Envoy
+   │
+   ├── Request Headers/Body 发给 Gateway Plugin 检查
+   │
+   ▼
+推理 Service / vLLM Pod
+   │
+   │ HTTP Response
+   ▼
+Envoy
+   │
+   ├── Response Headers/Body 发给 Gateway Plugin 检查
+   │
+   ▼
+客户端
+```
