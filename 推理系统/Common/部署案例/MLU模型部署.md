@@ -1,4 +1,3 @@
-
 一台八卡MLU（MLU-590, 80G显存）服务器完整加载一个稳定可用，生产级别的模型（GLM-5.2-W4A8，deepseek-v4-flash等），并对外提供服务
 
 也就是说，一台配置够高的GPU服务器就是部署一个目前最顶级的生产模型
@@ -44,8 +43,6 @@ MOE模型：每层只选少数 expert，因此 active params 远小于 total par
 
 如何做？稀疏化/条件计算（MOE架构设计）
 
-
-
 现在，我们来讨论“一台8卡MLU-590服务是如何部署一个750B的模型的？”
 
 # 3.部署分析
@@ -56,10 +53,11 @@ MOE模型：每层只选少数 expert，因此 active params 远小于 total par
 
 W4：主要权重使用 4 bit。模型权重从1500GB变为375GB
 
+* 在服务器上使用du -sh . 命令，发现该模型确实为376GB
+
 8卡服务器总显存：640GB，显然足够了，其余空间用于KVCache，Runtime，算子等
 
 MOE：由于MOE的存在，故每生成一个 token，不需要执行完整 750B Dense Model 的计算。
-
 
 BF16/FP16 ----> 4bit**（量化）**
 
