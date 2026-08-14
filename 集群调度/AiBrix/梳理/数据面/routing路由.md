@@ -1,1 +1,0 @@
-在AiBrix中，routing路由对应selectTargetPod()方法，一般发生在reqBody阶段，但是对于NoBody的请求，它则可能会发生在reqHeader阶段
