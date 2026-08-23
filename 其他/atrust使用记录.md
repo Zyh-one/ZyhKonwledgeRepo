@@ -56,3 +56,8 @@ curl -4 -I -L --connect-timeout 10 --max-time 20 https://openai.com
 
 curl -4 -I -L --connect-timeout 10 --max-time 20 https://www.baidu.com
 ```
+claude-code权限放开
+
+claude --permission-mode bypassPermissions
+
+50机器的vscode网络代理配置位于/home/zhangyuhao/.vscode-server/data/Machine/settings.json:1

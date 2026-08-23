@@ -171,8 +171,6 @@ P/D分离涉及KVCache传输，故需要Envoy和Gateway plugin执行多次操作
 | KV 传输元数据适配    | `algorithms/pd/transfer/`                         | NIXL、SHFS、Mooncake 的元数据如何合并？               |
 | 缓存与指标           | `pkg/cache/`、`pkg/kvevent/`                    | 路由算法所需 Pod、指标和 Prefix Cache 信息来自哪里？  |
 
-
-
 ## 2.1extProcPb
 
 来着gateway-plugin上层envoy组件，但是又和gateway-plugin内部处理逻辑高度耦合
@@ -651,7 +649,6 @@ Process() 返回
 
 Process()中for循环的结束标志来自`srv.Recv()`
 
-
 **ReqHandle**
 
 ENvoy接收到HTTP请求后，转换为protobuf消息，先将`RequestHeaders`发给gatewau-plugin处理，然后将`Request Body`....，整个过程如图
@@ -868,8 +865,6 @@ resp := &extProcPb.ProcessingResponse{
 该响应体只包含需要发送给Envoy的内；
 
 * `routingCtx`、`user` 和 `rpm` 是 `HandleRequestHeaders()` 返回给 gateway-plugin 内部后续处理阶段的数据，并不在 protobuf 响应中
-
-
 
 问题：
 
@@ -1100,9 +1095,7 @@ RespHeader需要干的事情：
 4. 构造HeaderMutation
 5. 返回ProcessingResponse
 
-
 ### 2.4.4HandleRespBody
-
 
 #### 2.4.4.1HandleErrorResponse
 
@@ -1138,7 +1131,6 @@ req := &extProcPb.ProcessingRequest{
 ```
 
 gateway-plugin发现ErrorResponse
-
 
 返回`ImmediateResponse`
 
@@ -1177,8 +1169,6 @@ resp := &extProcPb.ProcessingResponse{
 	},
 }
 ```
-
-
 
 #### 2.4.4.2HandleResponseBody
 
@@ -1264,7 +1254,6 @@ resp := &extProcPb.ProcessingResponse{
 }
 ```
 
-
 RespBody阶段处理逻辑：
 
 1. 提取Usage中的Token指标
@@ -1283,7 +1272,6 @@ RespBody阶段处理逻辑：
    2. 返回更新后的RPM和TPM
 3. 请求完成后，日志和指标收尾`requestEndHelper()`
 4. 生成相关Header，并返回ProcessingResponse
-
 
 关于“非流式提取Token指标”，需要解释一下
 
