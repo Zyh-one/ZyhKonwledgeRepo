@@ -1,13 +1,3 @@
-requestBody := []byte(`{   "model": "test-model",   "messages": [     {       "role": "user",       "content": "Hello"     }   ],   "stream": true }`)
-
-req := &extProcPb.ProcessingRequest{
-	Request: &extProcPb.ProcessingRequest_RequestBody{
-		RequestBody: &extProcPb.HttpBody{
-			Body:        requestBody,
-			EndOfStream: true,
-		},
-	},
-}
 
 # 1.前文
 
