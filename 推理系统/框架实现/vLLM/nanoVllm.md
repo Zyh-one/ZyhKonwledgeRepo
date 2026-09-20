@@ -6,7 +6,7 @@
 
 1. nanoVllm的大致架构：
 
-![image\.png](../../../source/推理系统/框架实现/vLLM/nanoVllm/image.png)
+![image<span data-type=](../../../source/推理系统/框架实现/vLLM/nanoVllm/image.png)\.png" />
 
 #### SamplingParams\(采样参数\)
 
@@ -400,7 +400,7 @@ Sequence列表 → prepare_prefill/prepare_decode → run_model → sampler → 
 
 #### Models
 
-![image\.png](../../../source/推理系统/框架实现/vLLM/nanoVllm/image%201.png)
+![image<span data-type=](<../../../source/推理系统/框架实现/vLLM/nanoVllm/image%201.png>)\.png" />
 
 1. nano\-vLLM 自己实现一套 Qwen3 模型结构，然后用 HuggingFace 目录中的 `config.json` 读取模型结构参数，再按这些参数构建 PyTorch 模型骨架。
 
@@ -512,19 +512,20 @@ Sequence列表 → prepare_prefill/prepare_decode → run_model → sampler → 
 
 ### 多头注意力\-张量并行
 
-![image\.png](../../../source/推理系统/框架实现/vLLM/nanoVllm/image%202.png)
+![image<span data-type=](<../../../source/推理系统/框架实现/vLLM/nanoVllm/image%202.png>)多头注意力的“分头”和张量并行的“切分权重”看起来都在拆 Q/K/V，但它们的目的和层次不同。
 
-1. 多头注意力的“分头”和张量并行的“切分权重”看起来都在拆 Q/K/V，但它们的目的和层次不同。
 
-   1. 多头注意力是为了提取序列token间的多种关联而对Q/K/V张量进行切分
-   2. 张量并行则是为了减少单GPU的存储压力，而将模型权重均匀分布在各个GPU上
-2. 举例：在传统MHA中
+1. 多头注意力是为了提取序列token间的多种关联而对Q/K/V张量进行切分
+3. 张量并行则是为了减少单GPU的存储压力，而将模型权重均匀分布在各个GPU上
+
+
+1. 举例：在传统MHA中
 
    1. hidden\_size = 4096；num\_heads = 32；head\_dim = 128；tp\_size = 4
    2. 在MHA中，总共执行32次attention\(\)；每个GPU只负责8 次注意力计算
    3. 故**\(核心\)**
 
-   ```Plain Text
+   ```Plain
    GPU0 负责 Q0~Q7,    K0~K7,    V0~V7
    GPU1 负责 Q8~Q15,   K8~K15,   V8~V15
    GPU2 负责 Q16~Q23,  K16~K23,  V16~V23

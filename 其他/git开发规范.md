@@ -115,6 +115,14 @@ git rebase --continue
 
 Rebase 完成后重新验证代码。
 
+如果处理冲突后，发现问题，此时可以暂停rebase，执行
+
+```
+git rebase --abort
+```
+
+再重新rebase
+
 补充：以上为本地rebase处理的流程，有时gitlab会主动提供自动rebase的功能
 
 ## 10. 推送 Rebase 后的分支
@@ -256,7 +264,50 @@ git switch -c zhangyihao/investigate-v1.2.0 v1.2.0
 
 后续修改和提交都会记录在新分支上，不会改变原 Tag。
 
-# 3. 开发辅助
+# 3.git stash用法
+
+当目前需要切换其他issue进行开发时，此时目前正在开发的issue需要暂停，但是目前正在开发的issue还没有结束，该issue对应的branch还有未完成的修改，此时就需要使用git stash了
+
+当前分支A(有修改，但未完成)；目标分支B
+
+**1.在当前分支A上保存未完成的修改**
+
+```
+git stash push -u -m "wip: #18322 route monitor"
+```
+
+执行 git stash list，可以清晰看到相关记录
+
+```
+stash@{0}: On zyh/route-monitor: wip: #18322 route monitor
+stash@{1}: On zyh/repair-inference-replics: wip: #18569 ...
+```
+
+**2.切换至目标分支B**
+
+```
+git switch branch-B
+```
+
+**3.在目标分支B上开发**
+
+**4.回到原分支A上进行恢复**
+
+git stash list 找到目标stash记录，比如stash@{1}: On branch-A:  wip: #18322 route monitor
+
+先执行
+
+```
+git stash apply stash@{1}
+```
+
+使用git diff检查，没问题后，
+
+```
+git stash drop stash@{1}
+```
+
+# 4. 开发辅助
 
 ## 3.1 git blame
 
@@ -275,5 +326,36 @@ git blame -L <起始行>,<结束行> <文件路径>
 2. 执行 `git blame`，获取对应的 Commit ID、作者和修改时间。
 3. 使用 `git show <commit-id>` 查看该次提交的完整改动和提交说明。
 4. 结合 Issue、MR 或相关人员进一步确认修改背景。
+5. 
 
-git branch -vv
+## 4.2修改commit信息
+
+当你需要对项目中的一个已存在的提交对象修改commit信息，此时你需要使用**interactive rebase** 修改这个历史 commit 的 message。
+
+```
+//2064ba0为目标commit对象的hash值
+git rebase -i 2064ba0^
+```
+
+会进入类似
+
+```
+pick 2064ba0 fix(webapp): repair inference replicas
+pick abcdef1 feat(webapp): initial separation ...
+pick abcdef2 fix(webapp): handle button ...
+pick abcdef3 fix(webapp): ...
+```
+
+将其中目标对象的pick改为reword，然后保存
+
+Git 随后会自动弹出 commit message 编辑界面，然后进行具体commit信息地修改，例如
+
+```
+feat(webapp): add intelligent routing monitoring  ---- 修改内容
+```
+
+保存退出，修改成功，然后需要将其push到远程分支
+
+```
+git push --force-with-lease
+```
