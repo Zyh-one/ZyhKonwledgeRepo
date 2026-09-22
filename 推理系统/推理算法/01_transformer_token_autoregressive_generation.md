@@ -1,3 +1,5 @@
+详细
+
 # Transformer 推理中的 Token 自回归生成与张量流
 
 > 本文只讨论最小推理闭环：
@@ -22,9 +24,18 @@
 我 喜欢 学习 AI
 ```
 
-批注-zyh：什么是tokenizer？简短介绍，大致含义每一个不同的模型都是不同tokenizer，每一轮prompt都会被tokenizer，同时tokenizer内部又包含hidden_size和`Vocabulary Size`参数，同时你需要强调这这些参数的含义
+此时模型的tokenizer为第一个处理prompt的模块，每个模型都有自己的tokenizer，不同模型的tokenizer的设计也基本不同，这也是不同模型之间的token不互通的根因
 
-Tokenizer 是将文本切分为离散 Token 并映射为 Token ID 的组件；不同模型通常使用各自训练好的 Tokenizer，因此词表与切分规则各不相同。每一段 Prompt 在进入模型前都会先经过 Tokenizer。需要区分两个参数：词表大小 V 由 Tokenizer 决定，限定了 Token ID 的取值范围；隐藏维度 H 是模型配置的超参数，属于模型而非 Tokenizer。二者共同决定后续 Embedding Matrix 的形状 `[V, H]`。
+## 1.1 tokenizer（分词器）
+
+-----将原始Prompt拆分为多个连续token
+
+Tokenizer 是将文本切分为离散 Token 并映射为 Token ID 的组件；每一段 Prompt 在进入模型前都会先经过 Tokenizer。
+
+tokenizer中需要区分两个参数：
+
+* 词表大小 V 由 Tokenizer 决定，限定了 Token ID 的取值范围；
+* 隐藏维度 H 是模型配置的超参数，属于模型而非 Tokenizer；其含义是：每一个 Token 在后续 Embedding 之后都会被表示为一个长度为 H 的向量（即一个 H 维的张量），H 就是这个向量有多长。二者共同决定后续 Embedding Matrix 的形状 `[V, H]`。
 
 Tokenizer 将其编码为：
 
@@ -32,26 +43,13 @@ Tokenizer 将其编码为：
 [t1, t2, t3, t4]
 ```
 
-其中每个元素是一个 Token ID。Token ID 本身只是离散整数索引，作用是在下一步通过 Embedding 取出该 Token 对应的 Hidden State；它不参与后续 Self-Attention 的相关计算。
-
-设：
-
-```text
-S = 4       # 当前序列长度
-H = 8       # Hidden Size
-V = 10000   # Vocabulary Size
-```
-
-批注-zyh：“`[t1, t2, t3, t4]`”中的元素为token_id，其作用就是为后续定位获取每个token的hidden_size，token_id是不会参与后续自注意力的相关计算
-
+其中每个元素是一个 Token ID。Token ID 本身只是唯一标识索引，作用是在下一步通过 Embedding 取出该 Token 对应的 Hidden State；它不参与后续 Self-Attention 的相关计算。
 
 ---
 
 ## 2. Embedding：Token ID → Hidden State
 
-批注-zyh：强调Embedding Matrix的出现原因，为什么由模型持有，而非tokenizer？
-
-Embedding Matrix 是模型在预训练中学习到的连续语义向量表，它把离散的 Token ID 映射为连续的 Hidden State。正因为它是可学习的参数并承载语义表示，所以由模型持有，而不是只负责文本切分的 Tokenizer。
+Embedding Matrix 是模型内部的向量表，它的唯一作用就是把离散的 Token ID 映射为连续的 Hidden State，这一点也完全可以从Embedding Matrix的维度中看出
 
 模型内部有 Embedding Matrix：
 
@@ -64,23 +62,16 @@ W_embedding: [V, H]
 因此：
 
 ```text
-[t1, t2, t3, t4]
+prompt = [t1, t2, t3, t4, ....]
         ↓
-Embedding
+Embedding Matirx
         ↓
-X: [S, H]
+X: [S, H]；S为序列长度，len(prompt)
 ```
-
-批注-zyh：这里不要把x看成x1,x2.....，你需要强调此时的x是一个[s,h]的矩阵张量
 
 此时 `X` 是一个 `[S, H]` 的矩阵张量，后续运算都把它作为整体张量处理。为便于按位置理解，可将其按行拆解为：
 
-```text
-x1
-x2
-x3
-x4
-```
+![X：[S, H] 张量矩阵，S=4 行、每行为一个 H 维向量](images/embedding_X_matrix.png)
 
 其中每个 `xi` 都是一个长度为 `H` 的向量。但需注意，`x1~x4` 只是 `X` 的各行视图，`X` 本身仍是一个 `[S, H]` 张量。
 
@@ -90,15 +81,11 @@ x4
 
 ## 3. 进入 Transformer Layer
 
-批注-zyh：后续统一换为S,H,V，不要用4和8等具体举例数值，容器产生歧义
+一层 Transformer 主要由 Self-Attention 与 MLP 两个子模块组成，并配合残差连接（Residual）与归一化（Norm）。在本章节中，只需要把Self-Attention，MLP，残差连接，归一化理解为数学计算过程，不讨论其出现原因，同时牢记，**在本章节中，Prompt输入张量X，在经过这些模块的计算时，维度始终保持不变**
 
-输入：
+张量`X: [S, H]`输入，经过一个 Transformer Layer：
 
-```text
-X: [S, H]
-```
-
-经过一个 Transformer Layer：
+批注
 
 ```text
 X
@@ -114,34 +101,32 @@ Residual
 Y
 ```
 
-输入输出 Shape 保持：
+张量X，输出 Shape 始终保持一致，直到最后一步LMHead（生成next token的概率分布）：
 
 ```text
 [S, H] → [S, H]
 ```
 
-输出可以写成：
+经过多次最终的输出可以写成：
 
 ```text
-Y = [y1, y2, y3, y4]
+Y = [y1, y2, y3, y4, ...]
 ```
 
-每个 `yi` 都表示对应 Token 在经过上下文融合后的 Hidden State。
+每个 `yi` 都和原始Prompt X中token一一对应，只不过其中的每个token都是经过**上下文融合**后的 Hidden State，这样做的目标是，提取token间的关联信息，为预测下一个token做准备
 
-批注-zyh：这一小节是可以简单先梳理一个transformer的组成模块，同时简单强调经过一层transformer的张量维度不变，因为后续会在正对transformer内部模型进行逐一梳理
-
-一层 Transformer 主要由 Self-Attention 与 MLP 两个子模块组成，并配合残差连接（Residual）与归一化（Norm）。经过一层 Transformer 后，张量维度保持不变，仍为 `[S, H]`；后续章节会逐一梳理 Self-Attention 内部的 Q/K/V、Attention 计算以及 MLP 的细节。
+后续章节会逐一梳理 Self-Attention 内部的 Q/K/V、Attention 计算以及 MLP 的细节。
 
 ---
 
 ## 4. Self-Attention 中的 Q / K / V
 
-Self-Attention 首先执行：
+Self-Attention 的第一步，是用三个权重矩阵 Wq、Wk、Wv 分别对输入张量 X 做矩阵乘法，从而得到 Q、K、V：
 
 ```text
-Q = XWq
-K = XWk
-V = XWv
+Q = X × Wq
+K = X × Wk
+V = X × Wv
 ```
 
 在当前简化模型中：
@@ -173,6 +158,8 @@ V = [v1, v2, v3, v4]
 
 ## 5. Token 之间如何建立注意力关系
 
+Self-Attention 通过下面的公式来计算 Token 之间的注意力关系——让每个 Query 与所有 Key 做点积，得到该 Query 对每个 Key 的注意力分数：
+
 计算：
 
 ```text
@@ -189,7 +176,7 @@ Shape：
 
 这个 `[S,S]` 矩阵表示每个 Query Token 对每个 Key Token 的注意力分数。
 
-对于 Decoder-only 模型，还需要 Causal Mask：
+对于 Decoder-only 模型，由于采用自回归生成——逐个预测下一个 Token，每个位置在计算注意力时只能看到自己及其之前的 Token，不能看到尚未生成的未来 Token；因此需要 Causal Mask 屏蔽上三角（未来位置），使注意力分数矩阵呈下三角分布：
 
 ```text
        K1  K2  K3  K4
@@ -200,18 +187,16 @@ Q3     ✓   ✓   ✓   ×
 Q4     ✓   ✓   ✓   ✓
 ```
 
-因此，第 4 个 Token 可以利用：
+因此，第 4 个 Token 对应的HiddenSize是集合前面3个token的相关信息
 
-```text
-t1 + t2 + t3 + t4
-```
+举例来说，对于第 4 个位置 Q4，经过 Softmax 后它对 [K1, K2, K3, K4] 的注意力权重可能是 [0.1, 0.2, 0.3, 0.4]（总和为 1）；那么 Q4 的注意力输出就是对应 V 的加权和：y4 = 0.1·v1 + 0.2·v2 + 0.3·v3 + 0.4·v4。权重越大的位置，其 V 对 y4 的贡献越大，这就是“融合其它 Token 相关信息”的含义。
 
-的信息。
+Softmax 的作用很简单：把上面得到的一组注意力分数归一化为一个概率分布（每个分数变为正数且总和为 1），分数越高的位置权重越大，表示该 Query 对该 Key 的关注度越高。
 
 经过 Softmax 后：
 
 ```text
-AttentionWeight: [S,S]
+AttentionWeight（自注意力权重）: [S,S]
 ```
 
 再与：
@@ -228,21 +213,27 @@ V: [S,H]
     [S,H]
 ```
 
-最终得到 Attention Output。
+最终得到 Attention Output。这就是一次完整 Self-Attention 计算的结果：Output 中每个位置的向量都不再只是该 Token 自身的表示，而是融合了它所能看到的其它 Token 的相关信息（融合权重由注意力分数决定）。
 
 ---
 
 ## 6. MLP 后仍然得到 `[S,H]`
 
-Attention 输出继续经过 MLP：
+Attention 输出继续经过 MLP。MLP 内部并非保持维度不变，需要先做**升维**（把隐藏维度从 H 放大到更大的中间维度，常见为 4H，以扩大表达容量），经非线性激活后再做**降维**（从中间维度投影回 H）；因此输入输出维度都保持 [S, H]：
+
+其内部并非一个黑盒，而是依次经过升维矩阵、非线性激活、降维矩阵三步：
 
 ```text
 [S,H]
-  ↓
-MLP
-  ↓
+  ↓  × W_up   （升维矩阵，[H, 4H]）
+[S, 4H]
+  ↓  非线性激活（如 GELU / ReLU）
+[S, 4H]
+  ↓  × W_down （降维矩阵，[4H, H]）
 [S,H]
 ```
+
+其中 W_up 把 H 维投影到 4H 维（升维，扩大表达容量），W_down 再把 4H 维投影回 H 维（降维），中间的非线性激活为 MLP 引入非线性表达能力。
 
 因此整个 Transformer Layer 最终输出：
 
@@ -266,23 +257,17 @@ t1 t2 t3 t4 → ?
 
 ## 7. LM Head：Hidden State → 下一个 Token
 
-LM Head 的权重可以写成：
+到这一步之前，Prompt 张量 X 已经依次经过了多层 Transformer 的处理（本篇为简化只画了一层，真实模型有几十层），但无论经过多少层，**进入 LM Head 之前的张量维度始终保持 [S, H]**，假设经过多层transformer的处理后，原始Prompt张量X变为张量Y：[S,H]
 
-```text
-W_lm: [H,V]
-```
+LM Head 本质上是一个线性变换层，其目标就是预测下一个token，后面详细介绍它是如何预测出下一个token的？
 
-因此：
+由于当前任务是预测下一个 Token，只有最后一个位置需要参与预测，因此这里只取张量 Y 的最后一个 token 的 Hidden State（记为 `y_last: [1, H]`），后续直接以这个 `[1, H]` 张量作为 LM Head 的输入。
 
-```text
-Y: [S,H]
-×
-W_lm: [H,V]
+批注-zyh：关于
 
-→
+它持有一个权重矩阵 **`W_lm: [H,V]`**，与张量Y: [S,H]相乘，该操作将张量 Y 投影到词表维度 V 上，得到每个位置在词表上的预测分数。
 
-Logits: [S,V]
-```
+`Y: [S, H] × W_lm: [H, V] → Logits: [S, V]`
 
 理论上每一个位置都会得到 Vocabulary 上的预测分数。
 
@@ -292,11 +277,9 @@ Logits: [S,V]
 logits[-1]: [V]
 ```
 
-它表示：
+它表示：Vocabulary 中每个 Token 成为下一个 Token 的分数。
 
-```text
-Vocabulary 中每个 Token 成为下一个 Token 的分数。
-```
+拿到最后一个位置在词表上的预测分数后，需要经过采样环节，从词表中决定最终输出哪个 Token。
 
 经过：
 
@@ -304,11 +287,7 @@ Vocabulary 中每个 Token 成为下一个 Token 的分数。
 Softmax / Temperature / Top-k / Top-p / Sampling
 ```
 
-最终得到：
-
-```text
-t5
-```
+最终从模型的词汇表中选取t5
 
 于是：
 
@@ -358,21 +337,11 @@ V Cache = [v1, v2, v3, v4]
 t1 t2 t3 t4 t5
 ```
 
-要生成：
+要生成`t6`，但是模型不再重新计算 `t1~t4`。
 
-```text
-t6
-```
+批注-zyh：这里需要补充，为什么只拿最新生成的t5作为新的输入就行？按照之前的介绍，原本需要将整个新生成的序列(`t1 t2 t3 t4 t5`)作为新一轮的输入，重复执行之前的计算流程，所以这里需要补充为什么只取t5？你可以参考
 
-模型不再重新计算 `t1~t4`。
-
-只把最新生成的：
-
-```text
-t5
-```
-
-作为新的输入。
+只把最新生成的 `t5` 作为新的输入。
 
 Embedding 后：
 
@@ -383,9 +352,9 @@ x5: [1,H]
 进入同一个 Transformer Layer：
 
 ```text
-q5 = x5Wq
-k5 = x5Wk
-v5 = x5Wv
+q5 = x5 × Wq
+k5 = x5 × Wk
+v5 = x5 × Wv
 ```
 
 得到：
@@ -430,45 +399,24 @@ q5: [1,H]
 
 ```text
 q_new [1,H]
-×
+×						→  				Attention Score [1,S]
 K_cache^T [H,S]
-
-→
-
-Attention Score [1,S]
 ```
 
-这意味着：
-
-```text
-虽然当前只重新计算了 t5，
-但 t5 仍然可以访问 t1~t5 的历史上下文。
-```
+这意味着：虽然当前只重新计算了 t5，但 t5 仍然可以访问 t1~t5 的历史上下文。
 
 再执行：
 
 ```text
 AttentionWeight [1,S]
-×
+×								→   			Attention Output [1,H]
 V_cache [S,H]
-
-→
-
-Attention Output [1,H]
 ```
 
-随后经过 MLP：
+随后经过 MLP，依旧为[1,H]维度，最后再进入 LM Head：
 
 ```text
-[1,H]
-```
-
-再进入 LM Head：
-
-```text
-[1,H] × [H,V]
-      ↓
-    [1,V]
+[1,H] × [H,V]  = [1, V]
 ```
 
 Sampling 得到：
@@ -517,13 +465,7 @@ t8
 ...
 ```
 
-直到：
-
-```text
-EOS
-```
-
-或者达到最大输出长度。
+直到 `EOS` 或者达到最大输出长度。
 
 ---
 
