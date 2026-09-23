@@ -1,6 +1,4 @@
-详细
-
-# Transformer 推理中的 Token 自回归生成与张量流
+# 推理基石：Transformer 自回归生成的最小闭环
 
 > 本文只讨论最小推理闭环：
 > **一段 Prompt 如何进入 Transformer，经过一次前向计算生成第一个 Token，并继续自回归生成后续 Token。**
@@ -16,6 +14,18 @@
 
 ---
 
+# 前置概念：结构参数、数据参数与 Prefill/Decode
+
+在进入具体流程前，先厘清两组概念。
+
+**结构参数 vs 数据参数。** 模型可分为“结构”与“数据”两类。结构参数以 `W_` 开头（如 `W_embedding`、`Wq/Wk/Wv`、`W_up/W_down`、`W_lm` 等），分布在各个模块中，是模型在预训练阶段学习得到、推理期间固定不变的权重；后文凡 `W_*` 样式的参数，均可理解为结构性参数。数据参数则来自 Prompt：经 Tokenizer 切分、Embedding 查表等一系列操作得到的 Hidden State 张量；它流经各模块时与该模块的结构参数做矩阵乘法等计算，目标是不断融合 Prompt 中的上下文信息，最终由 LM Head 生成 next Token。可类比“水流”：结构参数是河道与闸门（固定），数据参数是水流（随过程演化、被河道塑形）。
+
+**为什么这里突然冒出 Prefill 与 Decode？** 一段 Prompt 的推理天然分两阶段：首次前向必须处理整段 Prompt、逐层计算每个 token 并建立 KV Cache，称为 **Prefill**；此后每生成一个 Token，只需重新计算这个新 Token、复用历史 KV Cache，称为 **Decode**。本文据此分为第一部分（Prefill）与第二部分（Decode）。
+
+# 第一部分：Prefill —— 首次前向，处理整段 Prompt
+
+本部分梳理 Prompt 的首次前向：从 Tokenizer、Embedding，经一层 Transformer（Self-Attention 的 Q/K/V、Attention、MLP），到 LM Head 生成第一个新 Token，并在过程中建立 KV Cache。
+
 ## 1. 从 Prompt 到 Token
 
 假设输入：
@@ -26,9 +36,7 @@
 
 此时模型的tokenizer为第一个处理prompt的模块，每个模型都有自己的tokenizer，不同模型的tokenizer的设计也基本不同，这也是不同模型之间的token不互通的根因
 
-## 1.1 tokenizer（分词器）
-
------将原始Prompt拆分为多个连续token
+### 1.1 tokenizer（分词器）
 
 Tokenizer 是将文本切分为离散 Token 并映射为 Token ID 的组件；每一段 Prompt 在进入模型前都会先经过 Tokenizer。
 
@@ -71,7 +79,7 @@ X: [S, H]；S为序列长度，len(prompt)
 
 此时 `X` 是一个 `[S, H]` 的矩阵张量，后续运算都把它作为整体张量处理。为便于按位置理解，可将其按行拆解为：
 
-![X：[S, H] 张量矩阵，S=4 行、每行为一个 H 维向量](images/embedding_X_matrix.png)
+![X：S×H 张量矩阵，S=4 行、每行为一个 H 维向量](../../source/推理系统/推理算法/0-Transformer%20自回归生成的最小闭环/embedding_X_matrix.png)
 
 其中每个 `xi` 都是一个长度为 `H` 的向量。但需注意，`x1~x4` 只是 `X` 的各行视图，`X` 本身仍是一个 `[S, H]` 张量。
 
@@ -81,11 +89,13 @@ X: [S, H]；S为序列长度，len(prompt)
 
 ## 3. 进入 Transformer Layer
 
+需强调：真实模型由多层 Transformer 堆叠而成（常见数十层），本篇为简化只画一层；下图示意多层 Transformer 的数据流。
+
+![多层 Transformer 堆叠的数据流：X: S×H → Layer 1 → ... → Layer N → Y: S×H，每层各自建立该层 K/V Cache](../../source/推理系统/推理算法/0-Transformer%20自回归生成的最小闭环/multi_layer_transformer.png)
+
 一层 Transformer 主要由 Self-Attention 与 MLP 两个子模块组成，并配合残差连接（Residual）与归一化（Norm）。在本章节中，只需要把Self-Attention，MLP，残差连接，归一化理解为数学计算过程，不讨论其出现原因，同时牢记，**在本章节中，Prompt输入张量X，在经过这些模块的计算时，维度始终保持不变**
 
 张量`X: [S, H]`输入，经过一个 Transformer Layer：
-
-批注
 
 ```text
 X
@@ -115,11 +125,9 @@ Y = [y1, y2, y3, y4, ...]
 
 每个 `yi` 都和原始Prompt X中token一一对应，只不过其中的每个token都是经过**上下文融合**后的 Hidden State，这样做的目标是，提取token间的关联信息，为预测下一个token做准备
 
-后续章节会逐一梳理 Self-Attention 内部的 Q/K/V、Attention 计算以及 MLP 的细节。
+下面先梳理 Self-Attention 的 Q/K/V 与 Attention 计算，MLP 见下一节。
 
----
-
-## 4. Self-Attention 中的 Q / K / V
+### 3.1 Self-Attention 中的 Q / K / V
 
 Self-Attention 的第一步，是用三个权重矩阵 Wq、Wk、Wv 分别对输入张量 X 做矩阵乘法，从而得到 Q、K、V：
 
@@ -154,9 +162,7 @@ K = [k1, k2, k3, k4]
 V = [v1, v2, v3, v4]
 ```
 
----
-
-## 5. Token 之间如何建立注意力关系
+### 3.2 Token 之间如何建立注意力关系
 
 Self-Attention 通过下面的公式来计算 Token 之间的注意力关系——让每个 Query 与所有 Key 做点积，得到该 Query 对每个 Key 的注意力分数：
 
@@ -217,7 +223,7 @@ V: [S,H]
 
 ---
 
-## 6. MLP 后仍然得到 `[S,H]`
+## 4. MLP 后仍然得到 `[S,H]`
 
 Attention 输出继续经过 MLP。MLP 内部并非保持维度不变，需要先做**升维**（把隐藏维度从 H 放大到更大的中间维度，常见为 4H，以扩大表达容量），经非线性激活后再做**降维**（从中间维度投影回 H）；因此输入输出维度都保持 [S, H]：
 
@@ -253,9 +259,11 @@ y_last: [H]
 t1 t2 t3 t4 → ?
 ```
 
+批注-zyh：在当前标题下，可以在建立一个子标题，介绍一下“非线性激活”，本质上其实也是从token的hidden_size维度出发的
+
 ---
 
-## 7. LM Head：Hidden State → 下一个 Token
+## 5. LM Head：Hidden State → 下一个 Token
 
 到这一步之前，Prompt 张量 X 已经依次经过了多层 Transformer 的处理（本篇为简化只画了一层，真实模型有几十层），但无论经过多少层，**进入 LM Head 之前的张量维度始终保持 [S, H]**，假设经过多层transformer的处理后，原始Prompt张量X变为张量Y：[S,H]
 
@@ -263,21 +271,9 @@ LM Head 本质上是一个线性变换层，其目标就是预测下一个token�
 
 由于当前任务是预测下一个 Token，只有最后一个位置需要参与预测，因此这里只取张量 Y 的最后一个 token 的 Hidden State（记为 `y_last: [1, H]`），后续直接以这个 `[1, H]` 张量作为 LM Head 的输入。
 
-批注-zyh：关于
+LMHead层持有一个权重矩阵 **`W_lm: [H,V]`**，将 `y_last` 投影到词表维度 V：`y_last: [1, H] × W_lm: [H, V] → Logits: [1, V]`，即得到最后一个位置在词表上的预测分数。
 
-它持有一个权重矩阵 **`W_lm: [H,V]`**，与张量Y: [S,H]相乘，该操作将张量 Y 投影到词表维度 V 上，得到每个位置在词表上的预测分数。
-
-`Y: [S, H] × W_lm: [H, V] → Logits: [S, V]`
-
-理论上每一个位置都会得到 Vocabulary 上的预测分数。
-
-但推理时只需要最后一个位置：
-
-```text
-logits[-1]: [V]
-```
-
-它表示：Vocabulary 中每个 Token 成为下一个 Token 的分数。
+这个 `[1, V]` 向量表示：Vocabulary 中每个 Token 成为下一个 Token 的分数。
 
 拿到最后一个位置在词表上的预测分数后，需要经过采样环节，从词表中决定最终输出哪个 Token。
 
@@ -287,7 +283,7 @@ logits[-1]: [V]
 Softmax / Temperature / Top-k / Top-p / Sampling
 ```
 
-最终从模型的词汇表中选取t5
+最终从模型的词汇表中选取 t5
 
 于是：
 
@@ -303,9 +299,15 @@ t5
 
 这就是模型生成的第一个新 Token。
 
+**问题：**既然 LM Head 只需要最后一个位置的 Hidden State，那前面那些 token 为什么也要逐层经过 Transformer？
+
+原因是多层 Transformer 中，每一层的 K/V 都由上一层对应位置的 Hidden State 投影得到，而最后一个 token 在每一层都要通过 Attention 读取它之前所有 token 的 K/V；因此只有让前面所有 token 都逐层完成计算、形成各自在各层的 Hidden State，最后一层才能得到正确的 `y_last`。**总之，Prefill操作除了生成首token以外，还有生成KVCache，甚至说，生成KVCache才是Prefill计算所有token的关键**
+
+详见 [`prefill_decode_kv_cache.md`](prefill_decode_kv_cache.md) §4「多层 Transformer 决定了所有 Prompt token 都必须计算」。
+
 ---
 
-## 8. 第一次 Forward 同时建立 KV Cache
+## 6. 第一次 Forward 同时建立 KV Cache
 
 在刚才计算 Prompt 时，我们已经得到：
 
@@ -327,9 +329,13 @@ V Cache = [v1, v2, v3, v4]
 
 ---
 
-## 9. 开始自回归生成第二个 Token
+# 第二部分：Decode —— 自回归生成后续 Token
 
-> 说明：从本节起，S 表示当前 KV Cache 中的序列长度（Prefill 后为初始 Prompt 长度，每生成一个 Token 递增 1），与第 1 节中 S=4 的初始赋值是动态递增关系。
+本部分梳理首个 Token 之后的自回归生成：每一步只重新计算新 Token，复用历史 KV Cache、增量追加新 K/V，直至 EOS。
+
+## 1. 开始自回归生成第二个 Token
+
+> 说明：从本节起，S 表示当前 KV Cache 中的序列长度（Prefill 后为初始 Prompt 长度，每生成一个 Token 递增 1），与第一部分 §1 中 S=4 的初始赋值是动态递增关系。
 
 现在已有序列：
 
@@ -339,7 +345,7 @@ t1 t2 t3 t4 t5
 
 要生成`t6`，但是模型不再重新计算 `t1~t4`。
 
-批注-zyh：这里需要补充，为什么只拿最新生成的t5作为新的输入就行？按照之前的介绍，原本需要将整个新生成的序列(`t1 t2 t3 t4 t5`)作为新一轮的输入，重复执行之前的计算流程，所以这里需要补充为什么只取t5？你可以参考
+这与 Prefill 阶段「必须计算 Prompt 中所有 token」恰恰对应：Prefill 开始时历史 KV Cache 尚未建立，所有 token 都得逐层计算；而此刻 `t1~t4` 在每一层的 K/V 已由 Prefill 建好并缓存，又因 causal attention 保证后续 token 不会改变历史 token 的 Hidden State 与 K/V，所以历史 token 无需重新经过 Transformer，只需让新 token `t5` 走一遍计算并把它的 K/V 追加进 Cache（详见 [`prefill_decode_kv_cache.md`](prefill_decode_kv_cache.md) §6、§8）。
 
 只把最新生成的 `t5` 作为新的输入。
 
@@ -385,9 +391,11 @@ V Cache:
 [v1,v2,v3,v4,v5]
 ```
 
+注意这里只把 `k5、v5` 追加进 Cache，而 `q5` 不缓存——历史 token 的 Q 在它们各自被生成的那一步就已经用于查询当时的 K/V，之后不会再被任何后续 token 使用（后续 token 用自己的 Q 去查询 Cache 中的历史 K/V）。因此只需缓存 K/V、无需缓存 Q，这也是它叫 KV Cache 而非 QKV Cache 的原因（详见 [`prefill_decode_kv_cache.md`](prefill_decode_kv_cache.md) §11）。
+
 ---
 
-## 10. Decode 时的新 Query 如何使用历史上下文
+## 2. Decode 时的新 Query 如何使用历史上下文
 
 新的 Query：
 
@@ -427,7 +435,7 @@ t6
 
 ---
 
-## 11. 后续 Token 完全重复这一过程
+## 3. 后续 Token 完全重复这一过程
 
 生成 `t6` 后：
 
@@ -469,49 +477,15 @@ t8
 
 ---
 
-## 12. 整个自回归过程的核心
+## 4. 整个自回归过程的核心
 
 第一次处理 Prompt：
 
-```text
-t1 t2 t3 t4
-      ↓
-Embedding
-      ↓
-[S,H]
-      ↓
-Transformer
-      ↓
-建立 K/V Cache
-      ↓
-取最后一个 Hidden State
-      ↓
-LM Head
-      ↓
-t5
-```
+![Prefill 阶段纵向数据流：t1 t2 t3 t4 → Embedding → S×H → Transformer → 建立 K/V Cache → 取最后一个 Hidden State → LM Head → t5](../../source/推理系统/推理算法/0-Transformer%20自回归生成的最小闭环/prefill_transformer_flow.png)
 
 随后每一步：
 
-```text
-最新 Token
-   ↓
-Embedding
-   ↓
-[1,H]
-   ↓
-计算新的 q/k/v
-   ↓
-k/v 追加到 KV Cache
-   ↓
-q 访问整个历史 KV Cache
-   ↓
-Transformer
-   ↓
-LM Head
-   ↓
-下一个 Token
-```
+![Decode 阶段纵向数据流：最新 Token → Embedding → 1×H → 计算新的 q/k/v → k/v 追加到 KV Cache → q 访问整个历史 KV Cache → Transformer → LM Head → 下一个 Token](../../source/推理系统/推理算法/0-Transformer%20自回归生成的最小闭环/transformer_decode_token_flow.png)
 
 因此可以把大模型自回归推理理解成：
 
@@ -519,5 +493,5 @@ LM Head
 
 也正因为“第一次处理整段 Prompt”和“后续逐 Token 生成”的执行特征明显不同，才进一步产生了 Prefill 与 Decode 两个阶段，并为后面的 **PD 分离** 提供了基础。
 
-建议-zyh：第 9 节起 S 改为表示当前 KV Cache 长度（动态递增），与第 1 节 S=4 的初始 Prompt 长度语义不同，后续可显式区分（如用 S_cache）以避免混淆。
-建议-zyh：第 4 节可补充说明 Wq/Wk/Wv 与 Embedding Matrix 同属模型在预训练中学习到的权重矩阵，强化“模型持有可学习参数”这一主线。
+建议-zyh：第二部分 §1 起 S 改为表示当前 KV Cache 长度（动态递增），与第一部分 §1 中 S=4 的初始 Prompt 长度语义不同，后续可显式区分（如用 S_cache）以避免混淆。
+建议-zyh：第 3 节可补充说明 Wq/Wk/Wv 与 Embedding Matrix 同属模型在预训练中学习到的权重矩阵，强化“模型持有可学习参数”这一主线。

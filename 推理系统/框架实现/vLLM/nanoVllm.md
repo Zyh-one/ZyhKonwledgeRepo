@@ -400,7 +400,7 @@ Sequence列表 → prepare_prefill/prepare_decode → run_model → sampler → 
 
 #### Models
 
-![image<span data-type=](<../../../source/推理系统/框架实现/vLLM/nanoVllm/image%201.png>)\.png" />
+![image<span data-type=](../../../source/推理系统/框架实现/vLLM/nanoVllm/image%201.png)\.png" />
 
 1. nano\-vLLM 自己实现一套 Qwen3 模型结构，然后用 HuggingFace 目录中的 `config.json` 读取模型结构参数，再按这些参数构建 PyTorch 模型骨架。
 
