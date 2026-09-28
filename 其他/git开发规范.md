@@ -326,7 +326,6 @@ git blame -L <起始行>,<结束行> <文件路径>
 2. 执行 `git blame`，获取对应的 Commit ID、作者和修改时间。
 3. 使用 `git show <commit-id>` 查看该次提交的完整改动和提交说明。
 4. 结合 Issue、MR 或相关人员进一步确认修改背景。
-5. 
 
 ## 4.2修改commit信息
 
@@ -358,4 +357,30 @@ feat(webapp): add intelligent routing monitoring  ---- 修改内容
 
 ```
 git push --force-with-lease
+```
+
+## 4.3快速定位具体commit
+
+当获知某个 commit 的 hash，需要切换到该 commit 对应的代码进行查看时：
+
+```bash
+git switch --detach <commit-hash>
+```
+
+`<commit-hash>` 可只写前 7~8 位短哈希。此时进入 `detached HEAD` 状态，工作区即为该 commit 的代码快照，可随意浏览、编译、运行。查看完成后切回原分支：
+
+```bash
+git switch -
+```
+
+若需先查看该 commit 改了什么：
+
+```bash
+git show <commit-hash>
+```
+
+若需在该 commit 基础上改代码并保留，应基于它创建新分支，避免在 `detached HEAD` 上直接提交：
+
+```bash
+git switch -c <新分支名> <commit-hash>
 ```
