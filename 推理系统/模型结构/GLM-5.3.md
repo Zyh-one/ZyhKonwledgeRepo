@@ -2,7 +2,7 @@
 
 > 数据来源：黄区 cam-train-144 上 `/opt/models/GLM-5.3-W4A8/config.json`（只读读取）。本文从推理 infra 视角拆解每个模块，重点标注对显存、KV Cache、访存、并行切分的影响。
 >
-> 关联：[注意力变种/MLA.md](../推理算法/注意力变种/MLA.md)（MLA 张量流）、[注意力变种/MLA动机.md](../推理算法/注意力变种/MLA动机.md)（低秩压缩的设计动机）、[推理算法/自回归生成](<../推理算法/0-Transformer%20自回归生成的最小闭环.md>)（张量主线）、[模型并行](../模型并行/)（切分）。
+> 关联：[自注意力模块/存储轴/MLA.md](../推理算法/自注意力模块/存储轴/MLA.md)（MLA 张量流）、[自注意力模块/存储轴/MLA动机.md](../推理算法/自注意力模块/存储轴/MLA动机.md)（低秩压缩的设计动机）、[推理算法/自回归生成](<../推理算法/0-Transformer%20自回归生成的最小闭环.md>)（张量主线）、[模型并行](../模型并行/)（切分）。
 
 ---
 
@@ -25,7 +25,7 @@ GLM-5.3（架构 `GlmMoeDsaForCausalLM`）= **MoE（256 路由专家 + 1 共享�
 | `qk_rope_head_dim`                | 64                            | RoPE 解耦头维                   |
 | `qk_head_dim`                     | 256                           | 192 + 64（nope + rope）         |
 | `v_head_dim`                      | 256                           | V 头维                          |
-| `kv_lora_rank`                    | 512                           | KV 低秩压缩潜维 d_c ★MLA       |
+| `kv_lora_rank`                    | 512                           | KV 低秩压缩潜维 r_kv ★MLA       |
 | `q_lora_rank`                     | 2048                          | Q 低秩压缩潜维 ★MLA            |
 | `index_head_dim`                  | 128                           | DSA 索引头维                    |
 | `index_n_heads`                   | 32                            | DSA 索引头数                    |
@@ -96,7 +96,7 @@ y : [S, H]
 
 # 3. 注意力：MLA（低秩潜注意力）— 已确认
 
-GLM-5.3 的逐 token 注意力用的是 **MLA**，与 DeepSeek-V2/V3 同源。判定依据：`kv_lora_rank`、`q_lora_rank`、`qk_nope/qk_rope` 解耦字段同时出现（见 [MLA.md](../推理算法/注意力变种/MLA.md) §0 的签名）。
+GLM-5.3 的逐 token 注意力用的是 **MLA**，与 DeepSeek-V2/V3 同源。判定依据：`kv_lora_rank`、`q_lora_rank`、`qk_nope/qk_rope` 解耦字段同时出现（见 [MLA.md](../推理算法/自注意力模块/存储轴/MLA.md) §0 的签名）。
 
 ## 3.1 压缩-还原张量流（代入实际数值）
 
@@ -111,7 +111,7 @@ X : [S, 6144]
   X × W_kr [6144, 64]         → K_rope : [..., S, 64]  （位置解耦，单独缓存）
 ```
 
-权重吸收后推理不显式还原 K/V（详见 [MLA.md](../推理算法/注意力变种/MLA.md) §4）；RoPE 部分因非线性无法吸收，单独保留。
+权重吸收后推理不显式还原 K/V（详见 [MLA.md](../推理算法/自注意力模块/存储轴/MLA.md) §4）；RoPE 部分因非线性无法吸收，单独保留。
 
 ## 3.2 KV Cache 体积（infra 核心）
 
@@ -133,7 +133,7 @@ K_rope: 解耦位置部分（量级远小于完整 K/V）
 
 ## 3.3 一个容易误判的点
 
-`num_key_value_heads == num_attention_heads == 64`。如果套用「共享投影」路线（MQA/GQA）的判据「KV 头数 vs Q 头数」，会误读成 MHA。但 MLA 不靠共享头数省 Cache，而是靠低秩潜维省维度——所以 KV 头数字段保持等于 Q 头数，真正起作用的是 `kv_lora_rank=512`。这与 [MLA.md](../推理算法/注意力变种/MLA.md) §0 的分类口径完全一致。
+`num_key_value_heads == num_attention_heads == 64`。如果套用「共享投影」路线（MQA/GQA）的判据「KV 头数 vs Q 头数」，会误读成 MHA。但 MLA 不靠共享头数省 Cache，而是靠低秩潜维省维度——所以 KV 头数字段保持等于 Q 头数，真正起作用的是 `kv_lora_rank=512`。这与 [MLA.md](../推理算法/自注意力模块/存储轴/MLA.md) §0 的分类口径完全一致。
 
 ---
 
@@ -174,7 +174,7 @@ qk_rope_head_dim  : 64
 ```
 
 - `rope_theta=8e6` 偏大，配合 1M 上下文做长程衰减调优（已确认）。
-- 与 MLA 的关系：RoPE 只作用于 `qk_rope_head_dim=64` 这段解耦 K，`qk_nope=192` 段不带位置、可被权重吸收——这是 MLA 能同时满足「吸收省还原」与「带位置信息」的关键（见 [MLA.md](../推理算法/注意力变种/MLA.md) §4）。
+- 与 MLA 的关系：RoPE 只作用于 `qk_rope_head_dim=64` 这段解耦 K，`qk_nope=192` 段不带位置、可被权重吸收——这是 MLA 能同时满足「吸收省还原」与「带位置信息」的关键（见 [MLA.md](../推理算法/自注意力模块/存储轴/MLA.md) §3）。
 
 ---
 
@@ -252,7 +252,7 @@ infra 影响：
 
 ## 交叉关联
 
-- **MLA 张量细节**：见 [注意力变种/MLA.md](../推理算法/注意力变种/MLA.md)，本文的 `kv_lora_rank=512` 就是那篇里 `d_c` 的实例。
+- **MLA 张量细节**：见 [自注意力模块/存储轴/MLA.md](../推理算法/自注意力模块/存储轴/MLA.md)，本文的 `kv_lora_rank=512` 就是那篇里 `r_kv` 的实例。
 - **PD 分离**：MLA + DSA 使 Prefill（算力密集，DSA 索引开销大）与 Decode（访存密集，KV Cache 由 MLA 压薄）特征差异明显，是 [PD 分离](../其他细节/PD分离/PD分离.md) 的动机之一（合理推断）。
 - **并行策略**：TP 切 head、EP 切专家、CP/SP 切长序列（DSA 长上下文下的切分），见 [模型并行](../模型并行/)。
 
