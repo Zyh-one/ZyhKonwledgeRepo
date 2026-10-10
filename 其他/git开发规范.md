@@ -359,28 +359,63 @@ feat(webapp): add intelligent routing monitoring  ---- 修改内容
 git push --force-with-lease
 ```
 
-## 4.3快速定位具体commit
+## 4.3 快速定位具体 commit
 
-当获知某个 commit 的 hash，需要切换到该 commit 对应的代码进行查看时：
+场景：已知某个 commit 的 hash，要把本地仓库切换到该 commit 的代码。
+
+前提：该 commit 必须已存在于本地仓库。本地没有时，先从远程拉取（见第 2 步）。
+
+### 1. 确认 commit 是否在本地
+
+```bash
+git log -1 --oneline <commit-hash>
+```
+
+有输出说明 commit 已在本地，直接跳到第 3 步。报错说明本地没有，进入第 2 步。
+
+### 2. 从远程拉取该 commit
+
+优先直接按 hash 拉取（GitLab 服务器通常允许）：
+
+```bash
+git fetch origin <commit-hash>
+```
+
+若服务器拒绝（报 unadvertised object 错误），改为拉取全部远程分支，再反查该 commit 属于哪条分支：
+
+```bash
+git fetch origin '+refs/heads/*:refs/remotes/origin/*'
+git branch -r --contains <commit-hash>
+```
+
+### 3. 切换到该 commit
 
 ```bash
 git switch --detach <commit-hash>
 ```
 
-`<commit-hash>` 可只写前 7~8 位短哈希。此时进入 `detached HEAD` 状态，工作区即为该 commit 的代码快照，可随意浏览、编译、运行。查看完成后切回原分支：
+hash 可只写前 7~8 位。此时处于 `detached HEAD` 状态：工作区即该 commit 的代码快照，可浏览、编译、运行，但不属于任何分支。查看完成后切回原分支：
 
 ```bash
 git switch -
 ```
 
-若需先查看该 commit 改了什么：
+### 4. 三条补充规则
+
+- 临时看代码用 `--detach`。要长期跟随某条远程分支时，改挂本地分支，之后 `git pull` 即可跟上：
 
 ```bash
-git show <commit-hash>
+git switch -c <分支名> --track origin/<分支名>
 ```
 
-若需在该 commit 基础上改代码并保留，应基于它创建新分支，避免在 `detached HEAD` 上直接提交：
+- 不要在 `detached HEAD` 上长期开发。此时产生的提交没有分支引用，容易丢失。要基于该 commit 开发，先建分支：
 
 ```bash
 git switch -c <新分支名> <commit-hash>
+```
+
+- commit 有两个日期：author date 是写代码的时间，commit date 是它被 rebase/cherry-pick 进当前分支的时间。看到 commit "很旧"时，先分清是哪个日期：
+
+```bash
+git log -1 --format="author: %ai%ncommit: %ci" <commit-hash>
 ```

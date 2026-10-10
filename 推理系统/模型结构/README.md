@@ -16,6 +16,7 @@
 ## 条目
 
 - [GLM-5.3](GLM-5.3.md) — `GlmMoeDsaForCausalLM`：MLA + DSA 稀疏索引注意力 + 256 专家 MoE + W4A8，78 层，1M 上下文
+- [GLM-5.2](GLM-5.2/张量维度变化流程.md) — 与 GLM-5.3 同架构；从 token id 到 logits 的前向张量维度变化全流程（含 Prefill/Decode 两条注意力路径与 KV Cache 体积核算）
 
 ## 写作约定
 

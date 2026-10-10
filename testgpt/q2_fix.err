@@ -1,0 +1,4 @@
+[ask-gpt] 复用会话标签页 askgpt:test1010
+[ask-gpt] 留在当前对话（追问模式; --new-chat 可强制开新对话）
+[ask-gpt] composer = #mobile-composer-prompt
+[ask-gpt] 警告: 当前为游客模式（未登录），有条数限制且会话易失败
