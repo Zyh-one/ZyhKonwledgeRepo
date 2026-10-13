@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 775" width="1040" height="775">
+<rect width="100%" height="100%" fill="#f8fafc"/>
+<text x="520.0" y="38" text-anchor="middle" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#0f172a">MoE: Tensor Flow</text>
+<rect x="170" y="65" width="700" height="67" rx="12" fill="#e7eef8" stroke="#94a3b8"/>
+<text x="520.0" y="91" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" font-weight="bold" fill="#0f172a">Input X</text>
+<text x="520.0" y="114" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" fill="#334155">[S,H]</text>
+<path d="M 520.0 133 V 156" stroke="#0f766e" stroke-width="3"/>
+<path d="M 513.0 148 L 520.0 157 L 527.0 148" fill="none" stroke="#0f766e" stroke-width="3"/>
+<rect x="170" y="160" width="700" height="67" rx="12" fill="#dff7f0" stroke="#94a3b8"/>
+<text x="520.0" y="186" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" font-weight="bold" fill="#0f172a">Router / Gate</text>
+<text x="520.0" y="209" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" fill="#334155">W_R [H,E] → Scores [S,E]</text>
+<path d="M 520.0 228 V 251" stroke="#0f766e" stroke-width="3"/>
+<path d="M 513.0 243 L 520.0 252 L 527.0 243" fill="none" stroke="#0f766e" stroke-width="3"/>
+<rect x="170" y="255" width="700" height="67" rx="12" fill="#e7eef8" stroke="#94a3b8"/>
+<text x="520.0" y="281" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" font-weight="bold" fill="#0f172a">Top-k Routing</text>
+<text x="520.0" y="304" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" fill="#334155">Indices [S,k]; Weights [S,k]</text>
+<path d="M 520.0 323 V 346" stroke="#0f766e" stroke-width="3"/>
+<path d="M 513.0 338 L 520.0 347 L 527.0 338" fill="none" stroke="#0f766e" stroke-width="3"/>
+<rect x="170" y="350" width="700" height="67" rx="12" fill="#dff7f0" stroke="#94a3b8"/>
+<text x="520.0" y="376" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" font-weight="bold" fill="#0f172a">Dispatch by Expert</text>
+<text x="520.0" y="399" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" fill="#334155">X_e [N_e,H]; sum N_e = S×k</text>
+<path d="M 520.0 418 V 441" stroke="#0f766e" stroke-width="3"/>
+<path d="M 513.0 433 L 520.0 442 L 527.0 433" fill="none" stroke="#0f766e" stroke-width="3"/>
+<rect x="170" y="445" width="700" height="67" rx="12" fill="#e7eef8" stroke="#94a3b8"/>
+<text x="520.0" y="471" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" font-weight="bold" fill="#0f172a">Expert SwiGLU FFN</text>
+<text x="520.0" y="494" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" fill="#334155">[N_e,H] → [N_e,F] → [N_e,H]</text>
+<path d="M 520.0 513 V 536" stroke="#0f766e" stroke-width="3"/>
+<path d="M 513.0 528 L 520.0 537 L 527.0 528" fill="none" stroke="#0f766e" stroke-width="3"/>
+<rect x="170" y="540" width="700" height="67" rx="12" fill="#dff7f0" stroke="#94a3b8"/>
+<text x="520.0" y="566" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" font-weight="bold" fill="#0f172a">Weighted Combine</text>
+<text x="520.0" y="589" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" fill="#334155">Restore token order and sum selected outputs</text>
+<path d="M 520.0 608 V 631" stroke="#0f766e" stroke-width="3"/>
+<path d="M 513.0 623 L 520.0 632 L 527.0 623" fill="none" stroke="#0f766e" stroke-width="3"/>
+<rect x="170" y="635" width="700" height="67" rx="12" fill="#e7eef8" stroke="#94a3b8"/>
+<text x="520.0" y="661" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" font-weight="bold" fill="#0f172a">Output Y</text>
+<text x="520.0" y="684" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" fill="#334155">[S,H]</text>
+</svg>
