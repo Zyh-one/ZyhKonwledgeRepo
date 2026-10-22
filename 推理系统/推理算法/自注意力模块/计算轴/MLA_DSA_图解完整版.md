@@ -15,21 +15,21 @@
 
 ## 2. 参数约定
 
-| 参数 | 符号 | 值 |
-|---|---|---:|
-| 隐藏维度 | H | 7168 |
-| Token 数量 | S | 可变 |
-| MLA Q 低秩维度 | r_q | 1536 |
-| MLA KV 低秩维度 | r_kv | 512 |
-| MLA 正式注意力 Head 数 | N | 128 |
-| 每 Head Q/K NoPE 维度 | d_c | 128 |
-| 每 Head Q/K RoPE 维度 | d_r | 64 |
-| 每 Head Q/K 总维度 | d_qk | 192 |
-| 每 Head Value 维度 | d_v | 128 |
-| Indexer Head 数 | G | 64 |
-| Indexer 每 Head 维度 | d_i | 128 |
-| Indexer 每 Head RoPE 维度 | d_ir | 64 |
-| 稀疏选择位置数 | k | 2048 |
+| 参数                      | 符号 |   值 |
+| ------------------------- | ---- | ---: |
+| 隐藏维度                  | H    | 7168 |
+| Token 数量                | S    | 可变 |
+| MLA Q 低秩维度            | r_q  | 1536 |
+| MLA KV 低秩维度           | r_kv |  512 |
+| MLA 正式注意力 Head 数    | N    |  128 |
+| 每 Head Q/K NoPE 维度     | d_c  |  128 |
+| 每 Head Q/K RoPE 维度     | d_r  |   64 |
+| 每 Head Q/K 总维度        | d_qk |  192 |
+| 每 Head Value 维度        | d_v  |  128 |
+| Indexer Head 数           | G    |   64 |
+| Indexer 每 Head 维度      | d_i  |  128 |
+| Indexer 每 Head RoPE 维度 | d_ir |   64 |
+| 稀疏选择位置数            | k    | 2048 |
 
 来源：DeepSeek 官方配置 [`config_671B_v3.2.json`](https://github.com/deepseek-ai/DeepSeek-V3.2-Exp/blob/main/inference/config_671B_v3.2.json)。
 
@@ -295,13 +295,11 @@ $$
    $$
    [1,192]\times[192,k]\rightarrow Scores_{t,h}:[1,k]
    $$
-
 2. **仅对选中的有效历史位置 Softmax：**
 
    $$
    P_{t,h}=\operatorname{Softmax}(Scores_{t,h}):[1,k]
    $$
-
 3. **与选中的 V 加权求和：**
 
    $$
@@ -362,18 +360,18 @@ Head 127: Q[t,127] × K[Indices[t],127]ᵀ → Softmax → × V[Indices[t],127] 
 
 ## 8. 所有主要可训练投影矩阵汇总
 
-| 模块 | 权重 | 数学形状 | 作用 |
-|---|---|---|---|
-| MLA Q 压缩 | `W_DQ` | `[7168,1536]` | X → 共享 Q 低秩表示 |
-| MLA Q 解压 | `W_UQ` | `[1536,24576]` | C^Q → 128 Head Q |
-| MLA KV 压缩 + 位置 Key | `W_DKV` | `[7168,576]` | X → C^KV + K^RoPE |
-| MLA KV 解压 | `W_UKV` | `[512,32768]` | C^KV → K^NoPE + V |
-| ↳ K 解压（概念拆分） | `W_UK` | `[512,16384]` | C^KV → K^NoPE |
-| ↳ V 解压（概念拆分） | `W_UV` | `[512,16384]` | C^KV → V |
-| Indexer Q | `W_Q^I` | `[1536,8192]` | 复用 C^Q → 多 Head Query |
-| Indexer K | `W_K^I` | `[7168,128]` | X → Head 共享 Key |
-| Indexer W | `W_W^I` | `[7168,64]` | X → 动态 Head 加权系数 |
-| MLA 输出 | `W_O` | `[16384,7168]` | 多 Head 输出 → H |
+| 模块                   | 权重      | 数学形状         | 作用                      |
+| ---------------------- | --------- | ---------------- | ------------------------- |
+| MLA Q 压缩             | `W_DQ`  | `[7168,1536]`  | X → 共享 Q 低秩表示      |
+| MLA Q 解压             | `W_UQ`  | `[1536,24576]` | C^Q → 128 Head Q         |
+| MLA KV 压缩 + 位置 Key | `W_DKV` | `[7168,576]`   | X → C^KV + K^RoPE        |
+| MLA KV 解压            | `W_UKV` | `[512,32768]`  | C^KV → K^NoPE + V        |
+| ↳ K 解压（概念拆分）  | `W_UK`  | `[512,16384]`  | C^KV → K^NoPE            |
+| ↳ V 解压（概念拆分）  | `W_UV`  | `[512,16384]`  | C^KV → V                 |
+| Indexer Q              | `W_Q^I` | `[1536,8192]`  | 复用 C^Q → 多 Head Query |
+| Indexer K              | `W_K^I` | `[7168,128]`   | X → Head 共享 Key        |
+| Indexer W              | `W_W^I` | `[7168,64]`    | X → 动态 Head 加权系数   |
+| MLA 输出               | `W_O`   | `[16384,7168]` | 多 Head 输出 → H         |
 
 `W_UK` 和 `W_UV` 是 `W_UKV` **按列拆出的数学视图**，不是在原矩阵之外又增加了两套额外参数。Norm 层的可训练参数没有在表中单独列出。
 
@@ -432,20 +430,20 @@ $$
 
 GLM-5.2/5.3 使用同族机制（`GlmMoeDsaForCausalLM`），把本文流程的数值按下表替换即可（值均**已确认**，来自 [GLM-5.3 config](../../../模型结构/GLM-5.3/config.json)，逐字段含义见 [config字段逐项梳理](../../../模型结构/GLM-5.3/config字段逐项梳理.md)）：
 
-| 符号 | DeepSeek-V3.2（本文数值） | GLM-5.2/5.3 | 说明 |
-|---|---:|---:|---|
-| H | 7168 | 6144 | |
-| r_q（`q_lora_rank`） | 1536 | 2048 | |
-| r_kv（`kv_lora_rank`） | 512 | 512 | **相同**：每 token 每层缓存主体同为 512+64=576 元素 |
-| N（`num_attention_heads`） | 128 | 64 | |
-| d_c（`qk_nope_head_dim`） | 128 | 192 | |
-| d_r（`qk_rope_head_dim`） | 64 | 64 | 相同 |
-| d_qk（`qk_head_dim`） | 192 | 256 | d_c + d_r |
-| d_v（`v_head_dim`） | 128 | 256 | |
-| G（`index_n_heads`） | 64 | 32 | |
-| d_i（`index_head_dim`） | 128 | 128 | 相同 |
-| k（`index_topk`） | 2048 | 2048 | **相同** |
-| W_O | `[16384,7168]` | `[64×256,6144]=[16384,6144]` | N×d_v 恰好同为 16384 |
+| 符号                         | DeepSeek-V3.2（本文数值） |                     GLM-5.2/5.3 | 说明                                                      |
+| ---------------------------- | ------------------------: | ------------------------------: | --------------------------------------------------------- |
+| H                            |                      7168 |                            6144 |                                                           |
+| r_q（`q_lora_rank`）       |                      1536 |                            2048 |                                                           |
+| r_kv（`kv_lora_rank`）     |                       512 |                             512 | **相同**：每 token 每层缓存主体同为 512+64=576 元素 |
+| N（`num_attention_heads`） |                       128 |                              64 |                                                           |
+| d_c（`qk_nope_head_dim`）  |                       128 |                             192 |                                                           |
+| d_r（`qk_rope_head_dim`）  |                        64 |                              64 | 相同                                                      |
+| d_qk（`qk_head_dim`）      |                       192 |                             256 | d_c + d_r                                                 |
+| d_v（`v_head_dim`）        |                       128 |                             256 |                                                           |
+| G（`index_n_heads`）       |                        64 |                              32 |                                                           |
+| d_i（`index_head_dim`）    |                       128 |                             128 | 相同                                                      |
+| k（`index_topk`）          |                      2048 |                            2048 | **相同**                                            |
+| W_O                          |          `[16384,7168]` | `[64×256,6144]=[16384,6144]` | N×d_v 恰好同为 16384                                     |
 
 与 DeepSeek 版的两点结构差异（GLM 侧已确认、DeepSeek 侧无对应）：
 
@@ -456,7 +454,7 @@ Indexer 每 Head 的 64+64（RoPE+NoPE）切分在 GLM config 中无对应字段
 
 ## 参考资料
 
-- DeepSeek-V3.2-Exp 官方配置：<https://github.com/deepseek-ai/DeepSeek-V3.2-Exp/blob/main/inference/config_671B_v3.2.json>
-- DeepSeek-V3.2-Exp 官方参考实现：<https://github.com/deepseek-ai/DeepSeek-V3.2-Exp/blob/main/inference/model.py>
-- DeepSeek-V3.2 技术报告：<https://arxiv.org/abs/2512.02556>
+- DeepSeek-V3.2-Exp 官方配置：[https://github.com/deepseek-ai/DeepSeek-V3.2-Exp/blob/main/inference/config_671B_v3.2.json](https://github.com/deepseek-ai/DeepSeek-V3.2-Exp/blob/main/inference/config_671B_v3.2.json)
+- DeepSeek-V3.2-Exp 官方参考实现：[https://github.com/deepseek-ai/DeepSeek-V3.2-Exp/blob/main/inference/model.py](https://github.com/deepseek-ai/DeepSeek-V3.2-Exp/blob/main/inference/model.py)
+- DeepSeek-V3.2 技术报告：[https://arxiv.org/abs/2512.02556](https://arxiv.org/abs/2512.02556)
 - 本库关联：[DSA](DSA.md)（机制篇：anchor、full/shared 交替、索引缓存显存账）、[MLA](../存储轴/MLA.md)（存储轴张量流与吸收）、[计算轴概述](计算轴概述.md)（DSA 属路线②学习型稀疏）、[GLM-5.3 架构拆解](../../../模型结构/GLM-5.3/GLM-5.3.md)
