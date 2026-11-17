@@ -2,7 +2,7 @@
 
 本文依据 `gw-query.constant.ts`，按当前页面顺序收录“前缀缓存”类别的 4 条查询，组成 3 张图：使用率、条目/容量、索引可用性。原始指标说明紧跟在对应 PromQL 后，便于逐项对照。通用统计规则见 [PromQL 统计范式](../../../PromQL统计范式.md)。
 
-这些 metric 来自 AIBrix gateway-plugins，当前通过 `job="aibrix-gateway-plugins"` 筛选。它们描述路由器本地的 balanced 前缀缓存，不是 vLLM 引擎的 KV Cache，也没有模型维度。
+这些 metric 来自 AIBrix gateway-plugins，当前通过 `job="aibrix-gateway-plugins"` 筛选。其中 `aibrix_balanced_local_prefix_cache_*` 三项属于内部 balanced 路由实现，只描述路由器为维护前缀感知路由而保存的本地前缀哈希 LRU 元数据，不读取或统计 vLLM 引擎内部的前缀匹配、Prefix Caching 命中和 KV Cache 占用。`aibrix_prefix_cache_indexer_status` 是另一项索引可用性指标，不能与这三项一起归为 balanced 专属。上述指标均没有模型维度。
 
 > **多副本口径：** 每个 gateway-plugins Pod 都维护自己的本地缓存。默认按 `cluster` 聚合适用于总览；排查单副本打满、容量不一致或副本间倾斜时，应改为 `by(cluster,pod)` 展开。
 
@@ -26,9 +26,11 @@ avg by (cluster) (
 
 #### 关联指标：`aibrix_balanced_local_prefix_cache_usage_ratio`
 
-Gauge，原始值通常位于 0～1，表示单个 gateway-plugins 副本的 balanced 本地前缀缓存 `entries / capacity`。当前查询先求窗口平均，再按 `cluster` 对各副本取平均并乘 100，展示百分比。
+Gauge，原始值通常位于 0～1，表示单个 gateway-plugins 副本中 **balanced 路由器本地前缀哈希 LRU 索引的条目容量使用率**，即 `entries / capacity`。其中 entries 是 prefix hash entry 数，capacity 是该 LRU 的条目容量上限；二者都不是 token 数、请求数、vLLM KV block 数或显存字节数。当前查询先求窗口平均，再按 `cluster` 对各副本取平均并乘 100，展示百分比。
 
-这是各副本使用率的等权平均，不是 `sum(entries) / sum(capacity)`，也不是缓存命中率。副本容量不同或负载不均时，两种聚合结果可能不同；排查单副本最高水位时可改为 `max by(cluster)` 或 `avg by(cluster,pod)`，但那属于排查改写，不是当前面板口径。容量为 0 时原始比率的产生方式需以组件实现为准，不能由面板反推。
+**路由适用范围：** 是的，在当前内部实现中，`aibrix_balanced_local_prefix_cache_usage_ratio` 以及对应的 entries、capacity 都是 balanced 路由专属指标。
+
+这是各副本使用率的等权平均，不是 `sum(entries) / sum(capacity)`，也不是缓存命中率。副本容量不同或负载不均时，两种聚合结果可能不同；排查单副本最高水位时可改为 `max by(cluster)` 或 `avg by(cluster,pod)`，但那属于排查改写，不是当前面板口径。按当前源码，`capacity <= 0` 时不会更新 usage_ratio，不能把这种情况自行解释为 0% 或 100%。
 
 **建议定位标签：** `(cluster, namespace, pod)`；完整序列身份以裸样本的全部标签为准。
 
@@ -97,10 +99,10 @@ min by (cluster, indexer_type) (
 
 Gauge，原始值 `1` 表示索引可用，`0` 表示不可用。`indexer_type` 的已知取值为：
 
-| 值 | 含义 |
-| --- | --- |
+| 值        | 含义         |
+| --------- | ------------ |
 | `local` | 本地前缀索引 |
-| `sync` | 同步前缀索引 |
+| `sync`  | 同步前缀索引 |
 
 当前查询先对每个序列求窗口平均，再按 `(cluster,indexer_type)` 取最小值，因此：
 
