@@ -1,548 +1,171 @@
 # `envoy-aibrix-system-aibrix-eg` 指标名清单
 
-共 **542** 个指标名。以下名称按字典序排列，仅列指标名，不含数据序列、样本值、标签组合或 PromQL。
+共 **133** 个指标名，按照 [Envoy_HTTPRoute_Cluster_Metrics_分类汇总.md](Envoy_HTTPRoute_Cluster_Metrics_分类汇总.md) 的分类及类内顺序排列，仅保留黄区 VM 实测具有 `envoy_cluster_name=~"httproute/..."` 标签值的指标。第二列填写“是”或“否”，表示是否需要将该指标写入平台数据。
 
-```text
-count:up1
-envoy_access_logs_open_telemetry_access_log_logs_dropped
-envoy_access_logs_open_telemetry_access_log_logs_written
-envoy_cluster_assignment_stale
-envoy_cluster_assignment_timeout_received
-envoy_cluster_assignment_use_cached
-envoy_cluster_bind_errors
-envoy_cluster_circuit_breakers_default_cx_open
-envoy_cluster_circuit_breakers_default_cx_pool_open
-envoy_cluster_circuit_breakers_default_rq_open
-envoy_cluster_circuit_breakers_default_rq_pending_open
-envoy_cluster_circuit_breakers_default_rq_retry_open
-envoy_cluster_circuit_breakers_high_cx_open
-envoy_cluster_circuit_breakers_high_cx_pool_open
-envoy_cluster_circuit_breakers_high_rq_open
-envoy_cluster_circuit_breakers_high_rq_pending_open
-envoy_cluster_circuit_breakers_high_rq_retry_open
-envoy_cluster_client_ssl_socket_factory_downstream_context_secrets_not_ready
-envoy_cluster_client_ssl_socket_factory_ssl_context_update_by_sds
-envoy_cluster_client_ssl_socket_factory_upstream_context_secrets_not_ready
-envoy_cluster_default_total_match_count
-envoy_cluster_ext_authz_denied
-envoy_cluster_ext_authz_error
-envoy_cluster_ext_authz_failure_mode_allowed
-envoy_cluster_ext_authz_ok
-envoy_cluster_external_upstream_rq
-envoy_cluster_external_upstream_rq_completed
-envoy_cluster_external_upstream_rq_time_bucket
-envoy_cluster_external_upstream_rq_time_count
-envoy_cluster_external_upstream_rq_time_sum
-envoy_cluster_external_upstream_rq_xx
-envoy_cluster_http1_dropped_headers_with_underscores
-envoy_cluster_http1_metadata_not_supported_error
-envoy_cluster_http1_requests_rejected_with_underscores_in_headers
-envoy_cluster_http1_response_flood
-envoy_cluster_http2_deferred_stream_close
-envoy_cluster_http2_dropped_headers_with_underscores
-envoy_cluster_http2_goaway_sent
-envoy_cluster_http2_header_overflow
-envoy_cluster_http2_headers_cb_no_stream
-envoy_cluster_http2_inbound_empty_frames_flood
-envoy_cluster_http2_inbound_priority_frames_flood
-envoy_cluster_http2_inbound_window_update_frames_flood
-envoy_cluster_http2_keepalive_timeout
-envoy_cluster_http2_metadata_empty_frames
-envoy_cluster_http2_outbound_control_flood
-envoy_cluster_http2_outbound_control_frames_active
-envoy_cluster_http2_outbound_flood
-envoy_cluster_http2_outbound_frames_active
-envoy_cluster_http2_pending_send_bytes
-envoy_cluster_http2_requests_rejected_with_underscores_in_headers
-envoy_cluster_http2_rx_messaging_error
-envoy_cluster_http2_rx_reset
-envoy_cluster_http2_stream_refused_errors
-envoy_cluster_http2_streams_active
-envoy_cluster_http2_trailers
-envoy_cluster_http2_tx_flush_timeout
-envoy_cluster_http2_tx_reset
-envoy_cluster_init_fetch_timeout
-envoy_cluster_internal_upstream_rq
-envoy_cluster_internal_upstream_rq_completed
-envoy_cluster_internal_upstream_rq_time_bucket
-envoy_cluster_internal_upstream_rq_time_count
-envoy_cluster_internal_upstream_rq_time_sum
-envoy_cluster_internal_upstream_rq_xx
-envoy_cluster_lb_healthy_panic
-envoy_cluster_lb_local_cluster_not_ok
-envoy_cluster_lb_recalculate_zone_structures
-envoy_cluster_lb_subsets_active
-envoy_cluster_lb_subsets_created
-envoy_cluster_lb_subsets_fallback
-envoy_cluster_lb_subsets_fallback_panic
-envoy_cluster_lb_subsets_removed
-envoy_cluster_lb_subsets_selected
-envoy_cluster_lb_zone_cluster_too_small
-envoy_cluster_lb_zone_no_capacity_left
-envoy_cluster_lb_zone_number_differs
-envoy_cluster_lb_zone_routing_all_directly
-envoy_cluster_lb_zone_routing_cross_zone
-envoy_cluster_lb_zone_routing_sampled
-envoy_cluster_manager_active_clusters
-envoy_cluster_manager_cds_init_fetch_timeout
-envoy_cluster_manager_cds_update_attempt
-envoy_cluster_manager_cds_update_duration_bucket
-envoy_cluster_manager_cds_update_duration_count
-envoy_cluster_manager_cds_update_duration_sum
-envoy_cluster_manager_cds_update_failure
-envoy_cluster_manager_cds_update_rejected
-envoy_cluster_manager_cds_update_success
-envoy_cluster_manager_cds_update_time
-envoy_cluster_manager_cds_version
-envoy_cluster_manager_cluster_added
-envoy_cluster_manager_cluster_modified
-envoy_cluster_manager_cluster_removed
-envoy_cluster_manager_cluster_updated
-envoy_cluster_manager_cluster_updated_via_merge
-envoy_cluster_manager_update_merge_cancelled
-envoy_cluster_manager_update_out_of_merge_window
-envoy_cluster_manager_warming_clusters
-envoy_cluster_max_host_weight
-envoy_cluster_membership_change
-envoy_cluster_membership_degraded
-envoy_cluster_membership_excluded
-envoy_cluster_membership_healthy
-envoy_cluster_membership_total
-envoy_cluster_original_dst_host_invalid
-envoy_cluster_outlier_detection_ejections_active
-envoy_cluster_outlier_detection_ejections_consecutive_5xx
-envoy_cluster_outlier_detection_ejections_detected_consecutive_5xx
-envoy_cluster_outlier_detection_ejections_detected_consecutive_gateway_failure
-envoy_cluster_outlier_detection_ejections_detected_consecutive_local_origin_failure
-envoy_cluster_outlier_detection_ejections_detected_failure_percentage
-envoy_cluster_outlier_detection_ejections_detected_local_origin_failure_percentage
-envoy_cluster_outlier_detection_ejections_detected_local_origin_success_rate
-envoy_cluster_outlier_detection_ejections_detected_success_rate
-envoy_cluster_outlier_detection_ejections_enforced_consecutive_5xx
-envoy_cluster_outlier_detection_ejections_enforced_consecutive_gateway_failure
-envoy_cluster_outlier_detection_ejections_enforced_consecutive_local_origin_failure
-envoy_cluster_outlier_detection_ejections_enforced_failure_percentage
-envoy_cluster_outlier_detection_ejections_enforced_local_origin_failure_percentage
-envoy_cluster_outlier_detection_ejections_enforced_local_origin_success_rate
-envoy_cluster_outlier_detection_ejections_enforced_success_rate
-envoy_cluster_outlier_detection_ejections_enforced_total
-envoy_cluster_outlier_detection_ejections_overflow
-envoy_cluster_outlier_detection_ejections_success_rate
-envoy_cluster_outlier_detection_ejections_total
-envoy_cluster_retry_or_shadow_abandoned
-envoy_cluster_ssl_ciphers
-envoy_cluster_ssl_connection_error
-envoy_cluster_ssl_curves
-envoy_cluster_ssl_fail_verify_cert_hash
-envoy_cluster_ssl_fail_verify_error
-envoy_cluster_ssl_fail_verify_no_cert
-envoy_cluster_ssl_fail_verify_san
-envoy_cluster_ssl_handshake
-envoy_cluster_ssl_no_certificate
-envoy_cluster_ssl_ocsp_staple_failed
-envoy_cluster_ssl_ocsp_staple_omitted
-envoy_cluster_ssl_ocsp_staple_requests
-envoy_cluster_ssl_ocsp_staple_responses
-envoy_cluster_ssl_session_reused
-envoy_cluster_ssl_sigalgs
-envoy_cluster_ssl_versions
-envoy_cluster_ssl_was_key_usage_invalid
-envoy_cluster_update_attempt
-envoy_cluster_update_duration_bucket
-envoy_cluster_update_duration_count
-envoy_cluster_update_duration_sum
-envoy_cluster_update_empty
-envoy_cluster_update_failure
-envoy_cluster_update_no_rebuild
-envoy_cluster_update_rejected
-envoy_cluster_update_success
-envoy_cluster_update_time
-envoy_cluster_upstream_cx_active
-envoy_cluster_upstream_cx_close_notify
-envoy_cluster_upstream_cx_connect_attempts_exceeded
-envoy_cluster_upstream_cx_connect_fail
-envoy_cluster_upstream_cx_connect_ms_bucket
-envoy_cluster_upstream_cx_connect_ms_count
-envoy_cluster_upstream_cx_connect_ms_sum
-envoy_cluster_upstream_cx_connect_timeout
-envoy_cluster_upstream_cx_connect_with_0_rtt
-envoy_cluster_upstream_cx_destroy
-envoy_cluster_upstream_cx_destroy_local
-envoy_cluster_upstream_cx_destroy_local_with_active_rq
-envoy_cluster_upstream_cx_destroy_remote
-envoy_cluster_upstream_cx_destroy_remote_with_active_rq
-envoy_cluster_upstream_cx_destroy_with_active_rq
-envoy_cluster_upstream_cx_http1_total
-envoy_cluster_upstream_cx_http2_total
-envoy_cluster_upstream_cx_http3_total
-envoy_cluster_upstream_cx_idle_timeout
-envoy_cluster_upstream_cx_length_ms_bucket
-envoy_cluster_upstream_cx_length_ms_count
-envoy_cluster_upstream_cx_length_ms_sum
-envoy_cluster_upstream_cx_max_duration_reached
-envoy_cluster_upstream_cx_max_requests
-envoy_cluster_upstream_cx_none_healthy
-envoy_cluster_upstream_cx_overflow
-envoy_cluster_upstream_cx_pool_overflow
-envoy_cluster_upstream_cx_protocol_error
-envoy_cluster_upstream_cx_rx_bytes_buffered
-envoy_cluster_upstream_cx_rx_bytes_total
-envoy_cluster_upstream_cx_total
-envoy_cluster_upstream_cx_tx_bytes_buffered
-envoy_cluster_upstream_cx_tx_bytes_total
-envoy_cluster_upstream_flow_control_backed_up_total
-envoy_cluster_upstream_flow_control_drained_total
-envoy_cluster_upstream_flow_control_paused_reading_total
-envoy_cluster_upstream_flow_control_resumed_reading_total
-envoy_cluster_upstream_http3_broken
-envoy_cluster_upstream_internal_redirect_failed_total
-envoy_cluster_upstream_internal_redirect_succeeded_total
-envoy_cluster_upstream_rq
-envoy_cluster_upstream_rq_0rtt
-envoy_cluster_upstream_rq_active
-envoy_cluster_upstream_rq_cancelled
-envoy_cluster_upstream_rq_completed
-envoy_cluster_upstream_rq_maintenance_mode
-envoy_cluster_upstream_rq_max_duration_reached
-envoy_cluster_upstream_rq_pending_active
-envoy_cluster_upstream_rq_pending_failure_eject
-envoy_cluster_upstream_rq_pending_overflow
-envoy_cluster_upstream_rq_pending_total
-envoy_cluster_upstream_rq_per_try_idle_timeout
-envoy_cluster_upstream_rq_per_try_timeout
-envoy_cluster_upstream_rq_retry
-envoy_cluster_upstream_rq_retry_backoff_exponential
-envoy_cluster_upstream_rq_retry_backoff_ratelimited
-envoy_cluster_upstream_rq_retry_limit_exceeded
-envoy_cluster_upstream_rq_retry_overflow
-envoy_cluster_upstream_rq_retry_success
-envoy_cluster_upstream_rq_rx_reset
-envoy_cluster_upstream_rq_time_bucket
-envoy_cluster_upstream_rq_time_count
-envoy_cluster_upstream_rq_time_sum
-envoy_cluster_upstream_rq_timeout
-envoy_cluster_upstream_rq_total
-envoy_cluster_upstream_rq_tx_reset
-envoy_cluster_upstream_rq_xx
-envoy_cluster_version
-envoy_cluster_warming_state
-envoy_control_plane_connected_state
-envoy_control_plane_pending_requests
-envoy_control_plane_rate_limit_enforced
-envoy_dns_cares_get_addr_failure
-envoy_dns_cares_not_found
-envoy_dns_cares_pending_resolutions
-envoy_dns_cares_resolve_total
-envoy_dns_cares_timeouts
-envoy_envoy_overload_actions_reset_high_memory_stream_count
-envoy_filesystem_flushed_by_timer
-envoy_filesystem_reopen_failed
-envoy_filesystem_write_buffered
-envoy_filesystem_write_completed
-envoy_filesystem_write_failed
-envoy_filesystem_write_total_buffered
-envoy_http1_dropped_headers_with_underscores
-envoy_http1_metadata_not_supported_error
-envoy_http1_requests_rejected_with_underscores_in_headers
-envoy_http1_response_flood
-envoy_http2_deferred_stream_close
-envoy_http2_dropped_headers_with_underscores
-envoy_http2_goaway_sent
-envoy_http2_header_overflow
-envoy_http2_headers_cb_no_stream
-envoy_http2_inbound_empty_frames_flood
-envoy_http2_inbound_priority_frames_flood
-envoy_http2_inbound_window_update_frames_flood
-envoy_http2_keepalive_timeout
-envoy_http2_metadata_empty_frames
-envoy_http2_outbound_control_flood
-envoy_http2_outbound_control_frames_active
-envoy_http2_outbound_flood
-envoy_http2_outbound_frames_active
-envoy_http2_pending_send_bytes
-envoy_http2_requests_rejected_with_underscores_in_headers
-envoy_http2_rx_messaging_error
-envoy_http2_rx_reset
-envoy_http2_stream_refused_errors
-envoy_http2_streams_active
-envoy_http2_trailers
-envoy_http2_tx_flush_timeout
-envoy_http2_tx_reset
-envoy_http_cors_origin_invalid
-envoy_http_cors_origin_valid
-envoy_http_downstream_cx_active
-envoy_http_downstream_cx_delayed_close_timeout
-envoy_http_downstream_cx_destroy
-envoy_http_downstream_cx_destroy_active_rq
-envoy_http_downstream_cx_destroy_local
-envoy_http_downstream_cx_destroy_local_active_rq
-envoy_http_downstream_cx_destroy_remote
-envoy_http_downstream_cx_destroy_remote_active_rq
-envoy_http_downstream_cx_drain_close
-envoy_http_downstream_cx_http1_active
-envoy_http_downstream_cx_http1_soft_drain
-envoy_http_downstream_cx_http1_total
-envoy_http_downstream_cx_http2_active
-envoy_http_downstream_cx_http2_total
-envoy_http_downstream_cx_http3_active
-envoy_http_downstream_cx_http3_total
-envoy_http_downstream_cx_idle_timeout
-envoy_http_downstream_cx_length_ms_bucket
-envoy_http_downstream_cx_length_ms_count
-envoy_http_downstream_cx_length_ms_sum
-envoy_http_downstream_cx_max_duration_reached
-envoy_http_downstream_cx_max_requests_reached
-envoy_http_downstream_cx_overload_disable_keepalive
-envoy_http_downstream_cx_protocol_error
-envoy_http_downstream_cx_rx_bytes_buffered
-envoy_http_downstream_cx_rx_bytes_total
-envoy_http_downstream_cx_ssl_active
-envoy_http_downstream_cx_ssl_total
-envoy_http_downstream_cx_total
-envoy_http_downstream_cx_tx_bytes_buffered
-envoy_http_downstream_cx_tx_bytes_total
-envoy_http_downstream_cx_upgrades_active
-envoy_http_downstream_cx_upgrades_total
-envoy_http_downstream_flow_control_paused_reading_total
-envoy_http_downstream_flow_control_resumed_reading_total
-envoy_http_downstream_rq_active
-envoy_http_downstream_rq_completed
-envoy_http_downstream_rq_failed_path_normalization
-envoy_http_downstream_rq_header_timeout
-envoy_http_downstream_rq_http1_total
-envoy_http_downstream_rq_http2_total
-envoy_http_downstream_rq_http3_total
-envoy_http_downstream_rq_idle_timeout
-envoy_http_downstream_rq_max_duration_reached
-envoy_http_downstream_rq_non_relative_path
-envoy_http_downstream_rq_overload_close
-envoy_http_downstream_rq_redirected_with_normalized_path
-envoy_http_downstream_rq_rejected_via_ip_detection
-envoy_http_downstream_rq_response_before_rq_complete
-envoy_http_downstream_rq_rx_reset
-envoy_http_downstream_rq_time_bucket
-envoy_http_downstream_rq_time_count
-envoy_http_downstream_rq_time_sum
-envoy_http_downstream_rq_timeout
-envoy_http_downstream_rq_too_large
-envoy_http_downstream_rq_too_many_premature_resets
-envoy_http_downstream_rq_total
-envoy_http_downstream_rq_tx_reset
-envoy_http_downstream_rq_ws_on_non_ws_route
-envoy_http_downstream_rq_xx
-envoy_http_ext_authz_denied
-envoy_http_ext_authz_disabled
-envoy_http_ext_authz_error
-envoy_http_ext_authz_failure_mode_allowed
-envoy_http_ext_authz_filter_state_name_collision
-envoy_http_ext_authz_ignored_dynamic_metadata
-envoy_http_ext_authz_invalid
-envoy_http_ext_authz_ok
-envoy_http_ext_proc_clear_route_cache_disabled
-envoy_http_ext_proc_clear_route_cache_ignored
-envoy_http_ext_proc_clear_route_cache_upstream_ignored
-envoy_http_ext_proc_failure_mode_allowed
-envoy_http_ext_proc_http_not_ok_resp_received
-envoy_http_ext_proc_message_timeouts
-envoy_http_ext_proc_override_message_timeout_ignored
-envoy_http_ext_proc_override_message_timeout_received
-envoy_http_ext_proc_rejected_header_mutations
-envoy_http_ext_proc_send_immediate_resp_upstream_ignored
-envoy_http_ext_proc_spurious_msgs_received
-envoy_http_ext_proc_stream_msgs_received
-envoy_http_ext_proc_stream_msgs_sent
-envoy_http_ext_proc_streams_closed
-envoy_http_ext_proc_streams_failed
-envoy_http_ext_proc_streams_started
-envoy_http_health_check_cached_response
-envoy_http_health_check_degraded
-envoy_http_health_check_failed
-envoy_http_health_check_failed_cluster_empty
-envoy_http_health_check_failed_cluster_not_found
-envoy_http_health_check_failed_cluster_unhealthy
-envoy_http_health_check_ok
-envoy_http_health_check_request_total
-envoy_http_no_cluster
-envoy_http_no_route
-envoy_http_passthrough_internal_redirect_bad_location
-envoy_http_passthrough_internal_redirect_no_route
-envoy_http_passthrough_internal_redirect_predicate
-envoy_http_passthrough_internal_redirect_too_many_redirects
-envoy_http_passthrough_internal_redirect_unsafe_scheme
-envoy_http_rds_config_reload
-envoy_http_rds_config_reload_time_ms
-envoy_http_rds_init_fetch_timeout
-envoy_http_rds_update_attempt
-envoy_http_rds_update_duration_bucket
-envoy_http_rds_update_duration_count
-envoy_http_rds_update_duration_sum
-envoy_http_rds_update_empty
-envoy_http_rds_update_failure
-envoy_http_rds_update_rejected
-envoy_http_rds_update_success
-envoy_http_rds_update_time
-envoy_http_rds_version
-envoy_http_rq_direct_response
-envoy_http_rq_overload_local_reply
-envoy_http_rq_redirect
-envoy_http_rq_reset_after_downstream_response_started
-envoy_http_rq_total
-envoy_http_rs_too_large
-envoy_http_tracing_client_enabled
-envoy_http_tracing_health_check
-envoy_http_tracing_not_traceable
-envoy_http_tracing_random_sampling
-envoy_http_tracing_service_forced
-envoy_http_user_agent_downstream_cx_destroy_remote_active_rq
-envoy_http_user_agent_downstream_cx_length_ms_bucket
-envoy_http_user_agent_downstream_cx_length_ms_count
-envoy_http_user_agent_downstream_cx_length_ms_sum
-envoy_http_user_agent_downstream_cx_total
-envoy_http_user_agent_downstream_rq_total
-envoy_listener_admin_connections_accepted_per_socket_event_bucket
-envoy_listener_admin_connections_accepted_per_socket_event_count
-envoy_listener_admin_connections_accepted_per_socket_event_sum
-envoy_listener_admin_downstream_cx_active
-envoy_listener_admin_downstream_cx_destroy
-envoy_listener_admin_downstream_cx_length_ms_bucket
-envoy_listener_admin_downstream_cx_length_ms_count
-envoy_listener_admin_downstream_cx_length_ms_sum
-envoy_listener_admin_downstream_cx_overflow
-envoy_listener_admin_downstream_cx_overload_reject
-envoy_listener_admin_downstream_cx_total
-envoy_listener_admin_downstream_cx_transport_socket_connect_timeout
-envoy_listener_admin_downstream_global_cx_overflow
-envoy_listener_admin_downstream_listener_filter_error
-envoy_listener_admin_downstream_listener_filter_remote_close
-envoy_listener_admin_downstream_pre_cx_active
-envoy_listener_admin_downstream_pre_cx_timeout
-envoy_listener_admin_http_downstream_rq_completed
-envoy_listener_admin_http_downstream_rq_xx
-envoy_listener_admin_main_thread_downstream_cx_active
-envoy_listener_admin_main_thread_downstream_cx_total
-envoy_listener_admin_no_filter_chain_match
-envoy_listener_connections_accepted_per_socket_event_bucket
-envoy_listener_connections_accepted_per_socket_event_count
-envoy_listener_connections_accepted_per_socket_event_sum
-envoy_listener_downstream_cx_active
-envoy_listener_downstream_cx_destroy
-envoy_listener_downstream_cx_length_ms_bucket
-envoy_listener_downstream_cx_length_ms_count
-envoy_listener_downstream_cx_length_ms_sum
-envoy_listener_downstream_cx_overflow
-envoy_listener_downstream_cx_overload_reject
-envoy_listener_downstream_cx_total
-envoy_listener_downstream_cx_transport_socket_connect_timeout
-envoy_listener_downstream_global_cx_overflow
-envoy_listener_downstream_listener_filter_error
-envoy_listener_downstream_listener_filter_remote_close
-envoy_listener_downstream_pre_cx_active
-envoy_listener_downstream_pre_cx_timeout
-envoy_listener_extension_config_missing
-envoy_listener_http_downstream_rq_completed
-envoy_listener_http_downstream_rq_xx
-envoy_listener_manager_lds_init_fetch_timeout
-envoy_listener_manager_lds_update_attempt
-envoy_listener_manager_lds_update_duration_bucket
-envoy_listener_manager_lds_update_duration_count
-envoy_listener_manager_lds_update_duration_sum
-envoy_listener_manager_lds_update_failure
-envoy_listener_manager_lds_update_rejected
-envoy_listener_manager_lds_update_success
-envoy_listener_manager_lds_update_time
-envoy_listener_manager_lds_version
-envoy_listener_manager_listener_added
-envoy_listener_manager_listener_create_failure
-envoy_listener_manager_listener_create_success
-envoy_listener_manager_listener_in_place_updated
-envoy_listener_manager_listener_modified
-envoy_listener_manager_listener_removed
-envoy_listener_manager_listener_stopped
-envoy_listener_manager_total_filter_chains_draining
-envoy_listener_manager_total_listeners_active
-envoy_listener_manager_total_listeners_draining
-envoy_listener_manager_total_listeners_warming
-envoy_listener_manager_workers_started
-envoy_listener_network_extension_config_missing
-envoy_listener_no_filter_chain_match
-envoy_listener_worker_downstream_cx_active
-envoy_listener_worker_downstream_cx_total
-envoy_main_thread_watchdog_mega_miss
-envoy_main_thread_watchdog_miss
-envoy_overload_envoy_resource_monitors_global_downstream_max_connections_failed_updates
-envoy_overload_refresh_interval_delay_bucket
-envoy_overload_refresh_interval_delay_count
-envoy_overload_refresh_interval_delay_sum
-envoy_runtime_admin_overrides_active
-envoy_runtime_deprecated_feature_seen_since_process_start
-envoy_runtime_deprecated_feature_use
-envoy_runtime_load_error
-envoy_runtime_load_success
-envoy_runtime_num_keys
-envoy_runtime_num_layers
-envoy_runtime_override_dir_exists
-envoy_runtime_override_dir_not_exists
-envoy_sds_xds_certificate_init_fetch_timeout
-envoy_sds_xds_certificate_key_rotation_failed
-envoy_sds_xds_certificate_update_attempt
-envoy_sds_xds_certificate_update_duration_bucket
-envoy_sds_xds_certificate_update_duration_count
-envoy_sds_xds_certificate_update_duration_sum
-envoy_sds_xds_certificate_update_failure
-envoy_sds_xds_certificate_update_rejected
-envoy_sds_xds_certificate_update_success
-envoy_sds_xds_certificate_update_time
-envoy_sds_xds_certificate_version
-envoy_sds_xds_trusted_ca_init_fetch_timeout
-envoy_sds_xds_trusted_ca_key_rotation_failed
-envoy_sds_xds_trusted_ca_update_attempt
-envoy_sds_xds_trusted_ca_update_duration_bucket
-envoy_sds_xds_trusted_ca_update_duration_count
-envoy_sds_xds_trusted_ca_update_duration_sum
-envoy_sds_xds_trusted_ca_update_failure
-envoy_sds_xds_trusted_ca_update_rejected
-envoy_sds_xds_trusted_ca_update_success
-envoy_sds_xds_trusted_ca_update_time
-envoy_sds_xds_trusted_ca_version
-envoy_server_compilation_settings_fips_mode
-envoy_server_concurrency
-envoy_server_days_until_first_cert_expiring
-envoy_server_debug_assertion_failures
-envoy_server_dropped_stat_flushes
-envoy_server_dynamic_unknown_fields
-envoy_server_envoy_bug_failures
-envoy_server_hot_restart_epoch
-envoy_server_hot_restart_generation
-envoy_server_initialization_time_ms_bucket
-envoy_server_initialization_time_ms_count
-envoy_server_initialization_time_ms_sum
-envoy_server_live
-envoy_server_main_thread_watchdog_mega_miss
-envoy_server_main_thread_watchdog_miss
-envoy_server_memory_allocated
-envoy_server_memory_heap_size
-envoy_server_memory_physical_size
-envoy_server_parent_connections
-envoy_server_seconds_until_first_ocsp_response_expiring
-envoy_server_state
-envoy_server_static_unknown_fields
-envoy_server_stats_recent_lookups
-envoy_server_total_connections
-envoy_server_uptime
-envoy_server_version
-envoy_server_wip_protos
-envoy_server_worker_watchdog_mega_miss
-envoy_server_worker_watchdog_miss
-envoy_tcmalloc_released_by_timer
-envoy_thread_local_cluster_manager_main_thread_clusters_inflated
-envoy_thread_local_cluster_manager_worker_clusters_inflated
-envoy_workers_watchdog_mega_miss
-envoy_workers_watchdog_miss
-scrape_duration_seconds
-scrape_response_size_bytes
-scrape_samples_post_metric_relabeling
-scrape_samples_scraped
-scrape_series_added
-scrape_timeout_seconds
-up
-```
+| 指标名                                                                                  | 是否写入平台数据 |
+| --------------------------------------------------------------------------------------- | ---------------- |
+| `envoy_cluster_assignment_stale`                                                      |                  |
+| `envoy_cluster_assignment_timeout_received`                                           |                  |
+| `envoy_cluster_assignment_use_cached`                                                 |                  |
+| `envoy_cluster_bind_errors`                                                           |                  |
+| `envoy_cluster_default_total_match_count`                                             |                  |
+| `envoy_cluster_init_fetch_timeout`                                                    |                  |
+| `envoy_cluster_original_dst_host_invalid`                                             |                  |
+| `envoy_cluster_update_attempt`                                                        |                  |
+| `envoy_cluster_update_duration_bucket`                                                |                  |
+| `envoy_cluster_update_duration_count`                                                 |                  |
+| `envoy_cluster_update_duration_sum`                                                   |                  |
+| `envoy_cluster_update_empty`                                                          |                  |
+| `envoy_cluster_update_failure`                                                        |                  |
+| `envoy_cluster_update_no_rebuild`                                                     |                  |
+| `envoy_cluster_update_rejected`                                                       |                  |
+| `envoy_cluster_update_success`                                                        |                  |
+| `envoy_cluster_update_time`                                                           |                  |
+| `envoy_cluster_version`                                                               |                  |
+| `envoy_cluster_warming_state`                                                         |                  |
+| `envoy_cluster_membership_change`                                                     |                  |
+| `envoy_cluster_membership_degraded`                                                   | 是               |
+| `envoy_cluster_membership_excluded`                                                   | 是               |
+| `envoy_cluster_membership_healthy`                                                    | 是               |
+| `envoy_cluster_membership_total`                                                      | 是               |
+| `envoy_cluster_lb_healthy_panic`                                                      | 是               |
+| `envoy_cluster_lb_local_cluster_not_ok`                                               |                  |
+| `envoy_cluster_lb_recalculate_zone_structures`                                        |                  |
+| `envoy_cluster_lb_subsets_active`                                                     |                  |
+| `envoy_cluster_lb_subsets_created`                                                    |                  |
+| `envoy_cluster_lb_subsets_fallback`                                                   |                  |
+| `envoy_cluster_lb_subsets_fallback_panic`                                             |                  |
+| `envoy_cluster_lb_subsets_removed`                                                    |                  |
+| `envoy_cluster_lb_subsets_selected`                                                   |                  |
+| `envoy_cluster_lb_zone_cluster_too_small`                                             |                  |
+| `envoy_cluster_lb_zone_no_capacity_left`                                              |                  |
+| `envoy_cluster_lb_zone_number_differs`                                                |                  |
+| `envoy_cluster_lb_zone_routing_all_directly`                                          |                  |
+| `envoy_cluster_lb_zone_routing_cross_zone`                                            |                  |
+| `envoy_cluster_lb_zone_routing_sampled`                                               |                  |
+| `envoy_cluster_max_host_weight`                                                       |                  |
+| `envoy_cluster_circuit_breakers_default_cx_open`                                      |                  |
+| `envoy_cluster_circuit_breakers_default_cx_pool_open`                                 |                  |
+| `envoy_cluster_circuit_breakers_default_rq_open`                                      |                  |
+| `envoy_cluster_circuit_breakers_default_rq_pending_open`                              |                  |
+| `envoy_cluster_circuit_breakers_default_rq_retry_open`                                |                  |
+| `envoy_cluster_circuit_breakers_high_cx_open`                                         |                  |
+| `envoy_cluster_circuit_breakers_high_cx_pool_open`                                    |                  |
+| `envoy_cluster_circuit_breakers_high_rq_open`                                         |                  |
+| `envoy_cluster_circuit_breakers_high_rq_pending_open`                                 |                  |
+| `envoy_cluster_circuit_breakers_high_rq_retry_open`                                   |                  |
+| `envoy_cluster_outlier_detection_ejections_active`                                    |                  |
+| `envoy_cluster_outlier_detection_ejections_consecutive_5xx`                           |                  |
+| `envoy_cluster_outlier_detection_ejections_detected_consecutive_5xx`                  |                  |
+| `envoy_cluster_outlier_detection_ejections_detected_consecutive_gateway_failure`      |                  |
+| `envoy_cluster_outlier_detection_ejections_detected_consecutive_local_origin_failure` |                  |
+| `envoy_cluster_outlier_detection_ejections_detected_failure_percentage`               |                  |
+| `envoy_cluster_outlier_detection_ejections_detected_local_origin_failure_percentage`  |                  |
+| `envoy_cluster_outlier_detection_ejections_detected_local_origin_success_rate`        |                  |
+| `envoy_cluster_outlier_detection_ejections_detected_success_rate`                     |                  |
+| `envoy_cluster_outlier_detection_ejections_enforced_consecutive_5xx`                  |                  |
+| `envoy_cluster_outlier_detection_ejections_enforced_consecutive_gateway_failure`      |                  |
+| `envoy_cluster_outlier_detection_ejections_enforced_consecutive_local_origin_failure` |                  |
+| `envoy_cluster_outlier_detection_ejections_enforced_failure_percentage`               |                  |
+| `envoy_cluster_outlier_detection_ejections_enforced_local_origin_failure_percentage`  |                  |
+| `envoy_cluster_outlier_detection_ejections_enforced_local_origin_success_rate`        |                  |
+| `envoy_cluster_outlier_detection_ejections_enforced_success_rate`                     |                  |
+| `envoy_cluster_outlier_detection_ejections_enforced_total`                            |                  |
+| `envoy_cluster_outlier_detection_ejections_overflow`                                  |                  |
+| `envoy_cluster_outlier_detection_ejections_success_rate`                              |                  |
+| `envoy_cluster_outlier_detection_ejections_total`                                     |                  |
+| `envoy_cluster_upstream_cx_active`                                                    |                  |
+| `envoy_cluster_upstream_cx_close_notify`                                              |                  |
+| `envoy_cluster_upstream_cx_connect_attempts_exceeded`                                 |                  |
+| `envoy_cluster_upstream_cx_connect_fail`                                              |                  |
+| `envoy_cluster_upstream_cx_connect_ms_bucket`                                         |                  |
+| `envoy_cluster_upstream_cx_connect_ms_count`                                          |                  |
+| `envoy_cluster_upstream_cx_connect_ms_sum`                                            |                  |
+| `envoy_cluster_upstream_cx_connect_timeout`                                           |                  |
+| `envoy_cluster_upstream_cx_connect_with_0_rtt`                                        |                  |
+| `envoy_cluster_upstream_cx_destroy`                                                   |                  |
+| `envoy_cluster_upstream_cx_destroy_local`                                             |                  |
+| `envoy_cluster_upstream_cx_destroy_local_with_active_rq`                              |                  |
+| `envoy_cluster_upstream_cx_destroy_remote`                                            |                  |
+| `envoy_cluster_upstream_cx_destroy_remote_with_active_rq`                             |                  |
+| `envoy_cluster_upstream_cx_destroy_with_active_rq`                                    |                  |
+| `envoy_cluster_upstream_cx_http1_total`                                               |                  |
+| `envoy_cluster_upstream_cx_http2_total`                                               |                  |
+| `envoy_cluster_upstream_cx_http3_total`                                               |                  |
+| `envoy_cluster_upstream_cx_idle_timeout`                                              |                  |
+| `envoy_cluster_upstream_cx_length_ms_bucket`                                          |                  |
+| `envoy_cluster_upstream_cx_length_ms_count`                                           |                  |
+| `envoy_cluster_upstream_cx_length_ms_sum`                                             |                  |
+| `envoy_cluster_upstream_cx_max_duration_reached`                                      |                  |
+| `envoy_cluster_upstream_cx_max_requests`                                              |                  |
+| `envoy_cluster_upstream_cx_none_healthy`                                              |                  |
+| `envoy_cluster_upstream_cx_overflow`                                                  |                  |
+| `envoy_cluster_upstream_cx_pool_overflow`                                             |                  |
+| `envoy_cluster_upstream_cx_protocol_error`                                            |                  |
+| `envoy_cluster_upstream_cx_total`                                                     |                  |
+| `envoy_cluster_upstream_cx_rx_bytes_buffered`                                         |                  |
+| `envoy_cluster_upstream_cx_rx_bytes_total`                                            |                  |
+| `envoy_cluster_upstream_cx_tx_bytes_buffered`                                         |                  |
+| `envoy_cluster_upstream_cx_tx_bytes_total`                                            |                  |
+| `envoy_cluster_upstream_flow_control_backed_up_total`                                 |                  |
+| `envoy_cluster_upstream_flow_control_drained_total`                                   |                  |
+| `envoy_cluster_upstream_flow_control_paused_reading_total`                            |                  |
+| `envoy_cluster_upstream_flow_control_resumed_reading_total`                           |                  |
+| `envoy_cluster_upstream_rq_0rtt`                                                      |                  |
+| `envoy_cluster_upstream_rq_active`                                                    |                  |
+| `envoy_cluster_upstream_rq_cancelled`                                                 |                  |
+| `envoy_cluster_upstream_rq_completed`                                                 |                  |
+| `envoy_cluster_upstream_rq_maintenance_mode`                                          |                  |
+| `envoy_cluster_upstream_rq_max_duration_reached`                                      |                  |
+| `envoy_cluster_upstream_rq_pending_active`                                            |                  |
+| `envoy_cluster_upstream_rq_pending_failure_eject`                                     |                  |
+| `envoy_cluster_upstream_rq_pending_overflow`                                          |                  |
+| `envoy_cluster_upstream_rq_pending_total`                                             |                  |
+| `envoy_cluster_upstream_rq_per_try_idle_timeout`                                      |                  |
+| `envoy_cluster_upstream_rq_per_try_timeout`                                           |                  |
+| `envoy_cluster_upstream_rq_retry`                                                     |                  |
+| `envoy_cluster_upstream_rq_retry_backoff_exponential`                                 |                  |
+| `envoy_cluster_upstream_rq_retry_backoff_ratelimited`                                 |                  |
+| `envoy_cluster_upstream_rq_retry_limit_exceeded`                                      |                  |
+| `envoy_cluster_upstream_rq_retry_overflow`                                            |                  |
+| `envoy_cluster_upstream_rq_retry_success`                                             |                  |
+| `envoy_cluster_upstream_rq_rx_reset`                                                  |                  |
+| `envoy_cluster_upstream_rq_timeout`                                                   |                  |
+| `envoy_cluster_upstream_rq_total`                                                     |                  |
+| `envoy_cluster_upstream_rq_tx_reset`                                                  |                  |
+| `envoy_cluster_retry_or_shadow_abandoned`                                             |                  |
+| `envoy_cluster_upstream_http3_broken`                                                 |                  |
+| `envoy_cluster_upstream_internal_redirect_failed_total`                               |                  |
+| `envoy_cluster_upstream_internal_redirect_succeeded_total`                            |                  |
+
+## 图表归并说明
+
+以下 4 个指标都是描述 Cluster Endpoint 当前数量的 Gauge，单位统一为“个”，对应**一张“上游 Endpoint 成员与健康状态”数据图**，在图中分别展示 Endpoint 总数、健康、降级和排除数量：
+
+- `envoy_cluster_membership_total`
+- `envoy_cluster_membership_healthy`
+- `envoy_cluster_membership_degraded`
+- `envoy_cluster_membership_excluded`
+
+图中使用 4 条独立折线，不堆叠、不使用 `rate()` 或 `increase()`。`healthy`、`degraded`、`excluded` 不一定是互斥状态，三者之和不必然等于 `total`。多个 Envoy Gateway 副本上报同一 Cluster 时，通常按 `envoy_cluster_name` 取 `max` 去重，不直接求和。
+
+### 第 4 类：熔断与并发限制（5 张数据图）
+
+第 4 类指标按以下 5 个资源维度分别形成数据图。每张图联合展示“限额状态 → 实际负载 → 溢出或相关事件”，不能仅凭 `*_open=1` 判断请求已经失败。表中的 `<default|high>` 表示按实际路由优先级选择 DEFAULT 或 HIGH 指标，不是指标名的一部分，两种优先级不能相加。
+
+| 数据图 | 限额状态 Gauge | 实际负载 Gauge | 溢出及辅助分析指标 |
+| ------ | -------------- | -------------- | ------------------ |
+| 1. 上游连接数限制 | `envoy_cluster_circuit_breakers_<default\|high>_cx_open` | `envoy_cluster_upstream_cx_active` | `envoy_cluster_upstream_cx_overflow`；辅以 `upstream_cx_connect_fail`、`upstream_cx_connect_timeout` |
+| 2. 上游连接池数量限制 | `envoy_cluster_circuit_breakers_<default\|high>_cx_pool_open` | 当前清单没有直接的连接池数量 Gauge，可辅助观察 `envoy_cluster_upstream_cx_active` | `envoy_cluster_upstream_cx_pool_overflow`；不能把连接池数量解释为 TCP 连接数 |
+| 3. 上游并发请求限制 | `envoy_cluster_circuit_breakers_<default\|high>_rq_open` | `envoy_cluster_upstream_rq_active` | 当前清单没有直接的并发请求 Overflow 指标，需结合 `upstream_rq_timeout`、`upstream_rq_cancelled`、响应状态及 Access Log |
+| 4. Pending Request 限制 | `envoy_cluster_circuit_breakers_<default\|high>_rq_pending_open` | `envoy_cluster_upstream_rq_pending_active` | `envoy_cluster_upstream_rq_pending_overflow`；辅以 `upstream_rq_pending_failure_eject`、`upstream_rq_timeout` |
+| 5. 上游重试限制 | `envoy_cluster_circuit_breakers_<default\|high>_rq_retry_open` | 当前清单没有 Active Retry Gauge | `envoy_cluster_upstream_rq_retry`、`upstream_rq_retry_overflow`、`upstream_rq_retry_success`、`upstream_rq_retry_limit_exceeded` |
+
+统一展示与聚合规则：
+
+- 所有查询继续按 `envoy_cluster_name=~"httproute/<业务namespace>/<HTTPRoute名称>/rule/[0-9]+"` 限定到目标 HTTPRoute 的 Upstream Cluster。
+- `*_open` 是 0/1 状态 Gauge，表示采样时是否达到限额，不是熔断次数或失败请求数；跨 Envoy 副本取 `max`，观察历史窗口可使用 `max_over_time()`，不能使用 `rate()` 或 `increase()`。
+- `*_active` 是当前资源数量 Gauge，不使用 `rate()` 或 `increase()`；展示全部 Envoy 副本的实际总负载时可求和，排查单副本异常时保留 `pod` 标签。
+- `*_overflow`、`upstream_rq_retry*` 等 Counter 先分别计算 `increase()` 或 `rate()`，再按需要跨 Envoy 副本求和。
+- 状态值、资源数量和事件增量的单位不同，不能强行共用同一 Y 轴；每张数据图应分层展示或使用适当的独立坐标轴。
+- `open=0` 不能证明窗口内从未达到限额，`open=1` 也不代表现存请求全部失败；最终业务影响仍需结合超时、取消、重置、响应状态和 Access Log 判断。
